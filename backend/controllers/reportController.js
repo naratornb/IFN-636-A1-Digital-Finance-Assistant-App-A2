@@ -19,14 +19,14 @@ res.status(500).json({ message: error.message });
 };
 
 const updateReport = async (req , res ) => {
-const { title, description, completed, reportdate } = req.body;
+const { title, description, reportdate } = req.body;
 try {
 const report = await Report.findById(req.params.id);
 if (!report) return res.status(404).json({ message: 'Report not found' });
 
 report.title = title || report.title;
 report.description = description || report.description;
-report.completed = completed ?? report.completed;
+
 report.reportdate = reportdate || report.reportdate;
 
 const updatedReport = await report.save();
