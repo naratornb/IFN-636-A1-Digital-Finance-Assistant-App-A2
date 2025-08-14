@@ -1,18 +1,59 @@
-**Task Manager Application Overview:The task manager application is designed to help users efficiently manage their tasks and responsibilities by providing a user-friendly interface for creating, viewing, updating, and deleting tasks. It includes essential features such as secure user authentication, allowing individuals to sign up and log in to their accounts, as well as profile management to update personal information. With built-in validation such as input field validation and email validation, the application ensures a seamless user experience while enhancing productivity and organization in both personal and professional settings. **
+Digital Finance Assistant Application Overview:
+The Digital Finance Assistant application helps users efficiently manage their personal finances through a user-friendly interface for tracking expenses, managing budgets, monitoring financial goals, and generating reports. It includes secure user authentication, allowing users to sign up, log in, log out, and manage their profiles. Built-in validations ensure data integrity and a seamless user experience, empowering users to make informed financial decisions.
 
-**This apps **contain** the following features:**
+This app contains the following features:
 
-* Signup
-* Login
-* Logout
-* Update profile
-* Add tasks
-* View tasks
-* Update tasks
-* Delete tasks
+Authentication & Profile Management
 
-**This **app**lication** is**almost **a** precompiled** app**. However, students will develop some features,**such as adding tasks, viewing tasks, updating tasks, and **deleting** tasks**. **Students** will interact with GitHub when they develop the features.**
+Signup: Create a new account
 
+Login: Access the account
+
+Logout: Sign out securely
+
+Update profile: Edit personal information
+
+Expenses (CRUD)
+
+Create: Add new expense records
+
+Read: View expense history
+
+Update: Edit existing expenses
+
+Delete: Remove expenses
+
+Budget (CRUD)
+
+Create: Set a new budget
+
+Read: View current budgets
+
+Update: Adjust budgets
+
+Delete: Remove budgets
+
+Goals (CRUD)
+
+Create: Define new financial goals
+
+Read: Track progress on goals
+
+Update: Edit goal details
+
+Delete: Remove goals
+
+Reports (CRUD)
+
+Create: Generate new reports
+
+Read: View financial summaries
+
+Update: Refresh or adjust report parameters
+
+Delete: Remove saved reports
+
+This application is mostly precompiled. However, students will actively develop CRUD functionality for expenses, budgets, goals, and reports, while also interacting with GitHub during development.
 ---
 
 **Prerequisite:** Please install the following software and create account in following web tools** **
