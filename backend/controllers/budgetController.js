@@ -57,8 +57,8 @@ module.exports = { getBudgets, addBudget, updateBudget, deleteBudget };
 */
 
 // src/controllers/BudgetController.js
-import BaseController from './BaseController.js';
-import BudgetService from '../services/BudgetService.js';
+import BaseController from './baseController.js';
+import BudgetService from '../services/budgetService.js';
 
 // OOP Principle: Inheritance - BudgetController extends BaseController
 class BudgetController extends BaseController {
