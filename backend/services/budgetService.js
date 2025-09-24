@@ -1,7 +1,6 @@
 // src/services/BudgetService.js
 import Budget from '../models/Budget.js';
 import BudgetRepository from '../repositories/budgetRepository.js';
-import QueryBuilder from '../utils/QueryBuilder.js';
 import {
   startOfWeek,
   endOfWeek,
