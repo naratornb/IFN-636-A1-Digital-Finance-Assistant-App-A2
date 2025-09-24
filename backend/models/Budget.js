@@ -1,14 +1,45 @@
-
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const budgetSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name: { type: String, required: true },
-  saved: { type: Number, required: true },
-  amount: { type: Number, required: true },
-  deadline: { type: Date },
-  status: { type: String, required: true },
-  description: { type: String, required: true },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  period: {
+    type: String,
+    enum: ['weekly', 'monthly'],
+    required: true
+  },
+  totalBudget: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  notes: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('Budget', budgetSchema);
+// Index for efficient querying by user and period
+budgetSchema.index({ userId: 1, period: 1 });
+
+// Virtual for budget status (active/expired)
+budgetSchema.virtual('status').get(function() {
+  const now = new Date();
+  return now >= this.startDate && now <= this.endDate ? 'active' : 'expired';
+});
+
+export default mongoose.model('Budget', budgetSchema);

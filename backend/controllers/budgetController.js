@@ -1,3 +1,4 @@
+/*
 const Budget = require('../models/Budget');
 
 const getBudgets = async (req, res) => {
@@ -53,3 +54,50 @@ const deleteBudget = async (req, res) => {
 
 module.exports = { getBudgets, addBudget, updateBudget, deleteBudget };
 
+*/
+
+// src/controllers/BudgetController.js
+import BaseController from './BaseController.js';
+import BudgetService from '../services/BudgetService.js';
+
+// OOP Principle: Inheritance - BudgetController extends BaseController
+class BudgetController extends BaseController {
+  constructor() {
+    // We'll handle repository in services
+    super(null);
+    this.budgetService = new BudgetService();
+  }
+
+  async validateRequest(req) {
+    if (req.method === 'POST') {
+      if (!req.body.period || !req.body.totalBudget) {
+        throw new Error('Period and total budget are required');
+      }
+    }
+  }
+
+  async processRequest(req) {
+    const userId = req.user.id;
+
+    switch (req.method) {
+      case 'POST':
+        return this.budgetService.createBudget({ ...req.body, userId });
+      case 'GET':
+          return this.budgetService.getBudgetsByUser(userId);
+      case 'PUT':
+        return this.budgetService.updateBudget(id, req.body);
+      case 'DELETE':
+        return this.budgetService.deleteBudget(id);
+      default:
+        throw new Error('Method not supported');
+    }
+  }
+}
+
+// Using Decorator Pattern to add authentication
+const budgetController = new BudgetController();
+export const createBudget = budgetController.handleRequest;
+export const getBudgets = budgetController.handleRequest;
+export const getBudgetById = budgetController.handleRequest;
+export const updateBudget = budgetController.handleRequest;
+export const deleteBudget = budgetController.handleRequest;

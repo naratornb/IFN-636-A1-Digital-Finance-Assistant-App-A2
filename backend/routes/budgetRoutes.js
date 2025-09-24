@@ -1,14 +1,18 @@
 const express = require('express');
-const { getBudgets, addBudget, updateBudget, deleteBudget } = require('../controllers/budgetController');
+const { getBudgets,getBudgetById, createBudget, updateBudget, deleteBudget } = require('../controllers/budgetController');
 const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
+// All routes require authentication
+router.use(protect);
+
 router.route('/')
-  .get(protect, getBudgets)
-  .post(protect, addBudget);
+  .get(getBudgets)
+  .post(createBudget);
 
 router.route('/:id')
-  .put(protect, updateBudget)
-  .delete(protect, deleteBudget);
+  .get(getBudgetById)
+  .put(updateBudget)
+  .delete(deleteBudget);
 
 module.exports = router;
