@@ -1,4 +1,4 @@
-import BaseRepository from './BaseRepository.js';
+import BaseRepository from './baseRepository.js';
 import Budget from '../models/Budget.js';
 
 class BudgetRepository extends BaseRepository {
