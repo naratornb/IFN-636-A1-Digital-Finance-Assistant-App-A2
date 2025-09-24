@@ -29,7 +29,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Print Env Secret
-
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -52,6 +51,13 @@ jobs:
           npm install --global yarn
           yarn --version
           yarn install
+
+      # Create frontend .env file dynamically from GitHub secrets
+      - name: Create Frontend Environment File
+        run: |
+          echo "REACT_APP_ENV_NAME=${{ secrets.ENV_NAME }}" > ./frontend/.env
+          echo "REACT_APP_API_URL=${{ secrets.API_URL || 'http://54.66.213.198:5001' }}" >> ./frontend/.env
+          echo "Created frontend .env with environment: ${{ secrets.ENV_NAME }}"
 
       # Install dependencies for frontend and build with CI=false to ignore warnings
       - name: Install Frontend Dependencies

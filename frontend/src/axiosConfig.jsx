@@ -1,9 +1,13 @@
 import axios from 'axios';
 
-const ip = process.env.ENV_NAME === 'production' ? 'http://54.66.213.198:5001': 'http://localhost:5001';
+// Use the API URL directly from environment variables, with a fallback for local development
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const envName = process.env.REACT_APP_ENV_NAME || 'development';
+console.log('Current environment:', envName);
+console.log('Using API endpoint:', API_URL);
 const axiosInstance = axios.create({
   // baseURL: 'http://localhost:5001', // local
-  baseURL: ip,
+  baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
