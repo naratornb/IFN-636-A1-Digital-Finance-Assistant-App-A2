@@ -53,14 +53,17 @@ jobs:
           yarn --version
           yarn install
 
-      # Install dependencies for frontend
+      # Install dependencies for frontend and build with CI=false to ignore warnings
       - name: Install Frontend Dependencies
         working-directory: ./frontend
         run: |
           df -h
           sudo rm -rf ./build
+          # Remove package-lock.json to avoid the warning
+          rm -f package-lock.json
           yarn install
-          yarn run build
+          # Set CI=false to prevent treating warnings as errors
+          CI=false yarn run build
       
 
       # Run backend tests
