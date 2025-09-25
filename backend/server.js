@@ -6,12 +6,17 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5001;
 const MONGODB_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/personal_finance';
+const swaggerDocs = require("./config/swagger");
 
 const startServer = async () => {
   try {
     // Using Singleton Pattern for database connection
     await connectDB(MONGODB_URI);
 
+    // swagger
+    swaggerDocs(app, PORT);
+
+    // Start the server
     app.listen(PORT, () => {
       logger.log(`Server running on port ${PORT}`);
     });
