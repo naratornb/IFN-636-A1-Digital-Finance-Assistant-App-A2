@@ -75,11 +75,11 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="flex-1 flex items-start justify-center px-6 py-6">                
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-4xl px-16 py-14"        >
-          <h1 className="text-3xl font-light uppercase tracking-[0.6em] text-center text-[#f2f2f2] mb-16">
+          <h1 className="text-3xl font-light uppercase tracking-[0.6em] text-center text-[#f2f2f2] mb-8">            
             PROFILE INFO
           </h1>
 
@@ -123,7 +123,7 @@ const Profile = () => {
                   placeholder="University"
                 />
               </div>
-              
+
               <div className="flex flex-col w-full">
                 <label className="uppercase tracking-[0.35em] text-sm font-medium text-[#d7d7d7]">
                   Address
