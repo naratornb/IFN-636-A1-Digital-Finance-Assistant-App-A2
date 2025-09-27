@@ -1,60 +1,63 @@
-const Expense = require('../models/Expense');
+import BaseController from './baseController.js';
+import ExpenseService from '../services/expenseService.js';
 
-const getExpenses = async (req, res) => {
-  try {
-    const expenses = await Expense.find({ userId: req.user.id });
-    res.json(expenses);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+class ExpenseController extends BaseController {
+  constructor() {
+    super(null); // We don't pass a repository because we use service
+    this.expenseService = new ExpenseService();
   }
-};
 
-const addExpense = async (req, res) => {
-  const { name, amount, deadline, paymentMethod, description } = req.body;
-  try {
-    const expense = await Expense.create({
-      userId: req.user.id,
-      name,
-      amount,
-      deadline,
-      paymentMethod,
-      description
-    });
-    res.status(201).json(expense);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  async validateRequest(req) {
+    // For POST and PUT, validate required fields
+    if (req.method === 'POST' || req.method === 'PUT') {
+      const { category, amount, date } = req.body;
+      if (!category || !amount || !date) {
+        throw new Error('Category, amount, and date are required');
+      }
+      if (amount <= 0) {
+        throw new Error('Amount must be greater than 0');
+      }
+    }
   }
-};
 
-const updateExpense = async (req, res) => {
-  const { name, amount, deadline, paymentMethod, description } = req.body;
-  try {
-    const expense = await Expense.findById(req.params.id); 
-    if (!expense) return res.status(404).json({ message: 'Expense not found' });
+  async processRequest(req) {
+    const userId = req.user.id;
+    const { id } = req.params;
 
-    expense.name = name || expense.name;
-    expense.amount = amount || expense.amount;
-    expense.deadline = deadline || expense.deadline;
-    expense.paymentMethod = paymentMethod || expense.paymentMethod;
-    expense.description = description || expense.description;
-
-    const updatedExpense = await expense.save(); 
-    res.json(updatedExpense);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    switch (req.method) {
+      case 'POST':
+        return this.expenseService.createExpense({ ...req.body, userId });
+      case 'GET':
+        if (id) {
+          return this.expenseService.getExpenseById(id);
+        } else {
+          // Check for date range query parameters
+          const { startDate, endDate } = req.query;
+          if (startDate && endDate) {
+            return this.expenseService.getExpensesByUserAndDateRange(
+              userId,
+              new Date(startDate),
+              new Date(endDate)
+            );
+          } else {
+            return this.expenseService.getExpensesByUser(userId);
+          }
+        }
+      case 'PUT':
+        return this.expenseService.updateExpense(id, req.body);
+      case 'DELETE':
+        return this.expenseService.deleteExpense(id);
+      default:
+        throw new Error('Method not supported');
+    }
   }
-};
+}
 
-const deleteExpense = async (req, res) => {
-  try {
-    const expense = await Expense.findById(req.params.id);
-    if (!expense) return res.status(404).json({ message: 'Expense not found' });
+const expenseController = new ExpenseController();
 
-    await expense.remove();
-    res.json({ message: 'Expense deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-module.exports = { getExpenses, addExpense, updateExpense, deleteExpense };
+// Export decorated handlers
+export const createExpense =expenseController.handleRequest;
+export const getExpenses = expenseController.handleRequest;
+export const getExpenseById = expenseController.handleRequest;
+export const updateExpense = expenseController.handleRequest;
+export const deleteExpense = expenseController.handleRequest;
