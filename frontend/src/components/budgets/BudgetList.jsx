@@ -2,51 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import BudgetCard from './BudgetCard.jsx';
 import BudgetForm from './BudgetForm.jsx';
-import BudgetService from '../../services/BudgetService.jsx';
-import { useAuth } from '../../context/AuthContext';
+import { useBudgetContext } from '../../context/BudgetContext';
 
 const BudgetList = () => {
-  const { user } = useAuth(); // Get user from AuthContext
-  const [budgets, setBudgets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { budgets, isLoading, error, getBudgets, resetSuccess } = useBudgetContext();
   const [showForm, setShowForm] = useState(false);
   const [editingBudgetId, setEditingBudgetId] = useState(null);
 
+  // Fetch budgets when component mounts
   useEffect(() => {
-    if (user?.token) {
-      fetchBudgets();
-    } else {
-      setError('You must be logged in to view budgets');
-      setLoading(false);
-    }
-  }, [user?.token]);
-
-  const fetchBudgets = async () => {
-    try {
-      setLoading(true);
-      const response = await BudgetService.getBudgets(user.token);
-      setBudgets(response.data);
-    } catch (err) {
-      setError('Failed to fetch budgets');
-    } finally {
-      setLoading(false);
-    }
-  };
+    getBudgets();
+    // Clean up success state when component unmounts
+    return () => resetSuccess();
+  }, [getBudgets, resetSuccess]);
 
   const handleSave = () => {
+    // Close the form after save
     setShowForm(false);
     setEditingBudgetId(null);
-    fetchBudgets();
+    // No need to manually refresh - context handles state update
   };
 
   const handleEdit = (budgetId) => {
     setEditingBudgetId(budgetId);
     setShowForm(true);
-  };
-
-  const handleDelete = () => {
-    fetchBudgets();
   };
 
   const handleCancel = () => {
@@ -59,13 +38,13 @@ const BudgetList = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Budget Planning</h1>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowForm(!showForm)}
           className="flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
-          Create New Budget
+          {showForm ? 'Cancel' : 'Create New Budget'}
         </button>
       </div>
 
@@ -83,11 +62,11 @@ const BudgetList = () => {
         />
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         </div>
-      ) : budgets.length === 0 ? (
+      ) : Array.isArray(budgets) && budgets.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-4">
             <svg className="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -104,13 +83,12 @@ const BudgetList = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {budgets.map(budget => (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.isArray(budgets) && budgets.map(budget => (
             <BudgetCard
               key={budget._id}
               budget={budget}
               onEdit={handleEdit}
-              onDelete={handleDelete}
             />
           ))}
         </div>
@@ -120,3 +98,4 @@ const BudgetList = () => {
 };
 
 export default BudgetList;
+

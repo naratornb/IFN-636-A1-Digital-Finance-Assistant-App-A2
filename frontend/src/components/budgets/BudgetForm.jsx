@@ -1,38 +1,59 @@
 // src/components/budgets/BudgetForm.js
 import React, { useState, useEffect } from 'react';
-import BudgetService from '../../services/BudgetService.jsx';
+import { useBudgetContext } from '../../context/BudgetContext';
 import { useAuth } from '../../context/AuthContext';
 
 const BudgetForm = ({ budgetId, onSave, onCancel }) => {
-  const { user } = useAuth(); // Get user from AuthContext
+  const { user } = useAuth();
+  const {
+    budget,
+    isLoading: contextLoading,
+    error: contextError,
+    getBudget,
+    createBudget,
+    updateBudget,
+    clearBudget
+  } = useBudgetContext();
+
   const [formData, setFormData] = useState({
     period: 'monthly',
     totalBudget: '',
-    startDate: new Date().toISOString().split('T')[0], // Default to today's date
+    startDate: new Date().toISOString().split('T')[0],
     notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Fetch budget data when editing
   useEffect(() => {
-    if (budgetId && user?.token) {
-      const fetchBudget = async () => {
-        try {
-          const response = await BudgetService.getBudgetById(user.token, budgetId);
-          const budget = response.data;
-          setFormData({
-            period: budget.period,
-            totalBudget: budget.totalBudget,
-            startDate: budget.startDate ? new Date(budget.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            notes: budget.notes || ''
-          });
-        } catch (err) {
-          setError('Failed to fetch budget data');
-        }
-      };
-      fetchBudget();
+    if (budgetId) {
+      getBudget(budgetId);
     }
-  }, [budgetId, user?.token]);
+
+    // Clear budget data when component unmounts
+    return () => clearBudget();
+  }, [budgetId, getBudget, clearBudget]);
+
+  // Update form when budget data is loaded
+  useEffect(() => {
+    if (budget && budgetId) {
+      setFormData({
+        period: budget.period || 'monthly',
+        totalBudget: budget.totalBudget || '',
+        startDate: budget.startDate
+          ? new Date(budget.startDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        notes: budget.notes || ''
+      });
+    }
+  }, [budget, budgetId]);
+
+  // Update error state from context
+  useEffect(() => {
+    if (contextError) {
+      setError(contextError);
+    }
+  }, [contextError]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,28 +66,33 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     setError('');
 
     try {
-      if (!user?.token) {
-        throw new Error('You must be logged in to perform this action');
-      }
-
       // Ensure totalBudget is a number
       const budgetData = {
         ...formData,
         totalBudget: parseFloat(formData.totalBudget)
       };
 
+      let success;
+
       if (budgetId) {
-        await BudgetService.updateBudget(user.token, budgetId, budgetData);
+        success = await updateBudget(budgetId, budgetData);
       } else {
-        await BudgetService.createBudget(user.token, budgetData);
+        success = await createBudget(budgetData);
       }
-      onSave();
+
+      if (success) {
+        // State is automatically updated via context
+        onSave();
+      }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to save budget');
+      setError(err.message || 'Failed to save budget');
     } finally {
       setLoading(false);
     }
   };
+
+  // Use either local or context loading state
+  const isLoading = loading || contextLoading;
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-6">
@@ -159,10 +185,10 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {loading ? 'Saving...' : 'Save'}
+            {isLoading ? 'Saving...' : 'Save'}
           </button>
         </div>
       </form>

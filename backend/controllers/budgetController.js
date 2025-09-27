@@ -1,62 +1,3 @@
-/*
-const Budget = require('../models/Budget');
-
-const getBudgets = async (req, res) => {
-  try {
-    const budgets = await Budget.find({ userId: req.user.id });
-    res.json(budgets);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const addBudget = async (req, res) => {
-  const { name, saved, amount, deadline, status, description } = req.body;
-  try {
-    const budget = await Budget.create({ userId: req.user.id, name, saved, amount, deadline, status, description });
-    res.status(201).json(budget);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const updateBudget = async (req, res) => {
-  const { name, saved, amount, deadline, status, description } = req.body;
-  try {
-    const budget = await Budget.findById(req.params.id);
-    if (!budget) return res.status(404).json({ message: 'Budget not found' });
-
-    budget.name = name || budget.name;
-    budget.saved = saved || budget.saved;
-    budget.amount = amount || budget.amount;
-    budget.deadline = deadline || budget.deadline;
-    budget.status = status || budget.status;
-    budget.description = description || budget.description;
-
-    const updatedBudget = await budget.save();
-    res.json(updatedBudget);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const deleteBudget = async (req, res) => {
-  try {
-    const budget = await Budget.findById(req.params.id);
-    if (!budget) return res.status(404).json({ message: 'Budget not found' });
-
-    await budget.remove();
-    res.json({ message: 'Budget deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-module.exports = { getBudgets, addBudget, updateBudget, deleteBudget };
-
-*/
-
-// src/controllers/BudgetController.js
 import BaseController from './baseController.js';
 import BudgetService from '../services/budgetService.js';
 
@@ -83,11 +24,23 @@ class BudgetController extends BaseController {
       case 'POST':
         return this.budgetService.createBudget({ ...req.body, userId });
       case 'GET':
-          return this.budgetService.getBudgetsByUser(userId);
+        // Check if we're getting a specific budget or all budgets
+        if (req.params.id) {
+          return this.budgetService.getBudgetById(req.params.id, userId);
+        }
+        return this.budgetService.getBudgetsByUser(userId);
       case 'PUT':
-        return this.budgetService.updateBudget(id, req.body);
+        // Extract budget ID from request parameters
+        if (!req.params.id) {
+          throw new Error('Budget ID is required for update operations');
+        }
+        return this.budgetService.updateBudget(req.params.id, req.body, userId);
       case 'DELETE':
-        return this.budgetService.deleteBudget(id);
+        // Extract budget ID from request parameters
+        if (!req.params.id) {
+          throw new Error('Budget ID is required for delete operations');
+        }
+        return this.budgetService.deleteBudget(req.params.id, userId);
       default:
         throw new Error('Method not supported');
     }
@@ -96,8 +49,10 @@ class BudgetController extends BaseController {
 
 // Using Decorator Pattern to add authentication
 const budgetController = new BudgetController();
-export const createBudget = budgetController.handleRequest;
-export const getBudgets = budgetController.handleRequest;
-export const getBudgetById = budgetController.handleRequest;
-export const updateBudget = budgetController.handleRequest;
-export const deleteBudget = budgetController.handleRequest;
+
+// Create handlers for specific endpoints
+export const createBudget = (req, res) => budgetController.handleRequest(req, res);
+export const getBudgets = (req, res) => budgetController.handleRequest(req, res);
+export const getBudgetById = (req, res) => budgetController.handleRequest(req, res);
+export const updateBudget = (req, res) => budgetController.handleRequest(req, res);
+export const deleteBudget = (req, res) => budgetController.handleRequest(req, res);
