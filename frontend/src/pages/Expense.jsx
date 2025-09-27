@@ -25,17 +25,26 @@ const Expenses = () => {
   }, [user]);
 
   return (
-    <div className="container mx-auto p-6">
-      <ExpenseForm
-        expenses={expenses}
-        setExpenses={setExpenses}
-        editingExpense={editingExpense}
-        setEditingExpense={setEditingExpense}
-      />
-      <ExpenseList expenses={expenses} setExpenses={setExpenses} setEditingExpense={setEditingExpense} />
+    <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
+      <div className="flex-1 px-6 py-10 lg:px-16">
+        <div className="mx-auto w-full max-w-20xl">
+          <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+            <ExpenseForm
+              expenses={expenses}
+              setExpenses={setExpenses}
+              editingExpense={editingExpense}
+              setEditingExpense={setEditingExpense}
+            />
+            <ExpenseList
+              expenses={expenses}
+              setExpenses={setExpenses}
+              setEditingExpense={setEditingExpense}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Expenses;
-

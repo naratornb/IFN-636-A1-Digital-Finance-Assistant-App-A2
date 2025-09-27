@@ -2,111 +2,155 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 
-const ExpenseForm = ({ expenses, setExpenses, editingExpense, setEditingExpense }) => {
+const ExpenseForm = ({
+  expenses,
+  setExpenses,
+  editingExpense,
+  setEditingExpense,
+}) => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({  
+  const [formData, setFormData] = useState({
     name: '',
     amount: '',
     deadline: '',
     paymentMethod: '',
-    description: '' 
+    description: '',
   });
 
-    useEffect(() => {
-      if (editingExpense) {
-        setFormData({
-          name: editingExpense.name,
-          amount: editingExpense.amount,
-          deadline: editingExpense.deadline,
-          paymentMethod: editingExpense.paymentMethod || '',
-          description: editingExpense.description || ''
-        });
-      } else {
-        setFormData({
-          name: '',
-          amount: '',
-          deadline: '',
-          paymentMethod: '',
-          description: ''
-        });
-      }
-    }, [editingExpense]);
-    
+  useEffect(() => {
+    if (editingExpense) {
+      setFormData({
+        name: editingExpense.name,
+        amount: editingExpense.amount,
+        deadline: editingExpense.deadline,
+        paymentMethod: editingExpense.paymentMethod || '',
+        description: editingExpense.description || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        amount: '',
+        deadline: '',
+        paymentMethod: '',
+        description: '',
+      });
+    }
+  }, [editingExpense]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (field) => (event) => {
+    const { value } = event.target;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     try {
       if (editingExpense) {
-        const response = await axiosInstance.put(`/api/expenses/${editingExpense._id}`, formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setExpenses(expenses.map((expense) => (expense._id === response.data._id ? response.data : expense)));
+        const { data } = await axiosInstance.put(
+          `/api/expenses/${editingExpense._id}`,
+          formData,
+          { headers: { Authorization: `Bearer ${user.token}` } },
+        );
+        setExpenses(
+          expenses.map((expense) =>
+            expense._id === data._id ? data : expense,
+          ),
+        );
       } else {
-        const response = await axiosInstance.post('/api/expenses', formData, {
+        const { data } = await axiosInstance.post('/api/expenses', formData, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
-        setExpenses([...expenses, response.data]);
+        setExpenses([...expenses, data]);
       }
       setEditingExpense(null);
-      setFormData({ name: '', amount: '', deadline: '', paymentMethod: '', description: '' });
+      setFormData({
+        name: '',
+        amount: '',
+        deadline: '',
+        paymentMethod: '',
+        description: '',
+      });
     } catch (error) {
       alert('Failed to save expense.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded mb-6">
-      <h1 className="text-2xl font-bold mb-4">{editingExpense ? 'Edit Expense' : 'Add Expense'}</h1>
-      <input
-        type="text"
-        placeholder="Category or Type"
-        value={formData.name}
-        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      
-      <input
-        type="Date"
-        value={formData.deadline}
-        onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <input
-        type="number"
-        placeholder="Total Expense ($Amount)"
-        value={formData.amount}
-        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <select
-        value={formData.paymentMethod}
-        onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      >
-        <option value="">Select Payment Method</option>
-        <option value="cash">Cash</option>
-        <option value="credit_card">Credit Card</option>
-        <option value="debit_card">Debit Card</option>
-        <option value="bank_transfer">Bank Transfer</option>
-        <option value="other">Other</option>
-      </select>
+    <section className="bg-[#5a5a5a] border border-[#707070] px-5 py-12 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+      <h1 className="text-3xl font-light uppercase tracking-[0.6em] mb-10">
+        Expense
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-10">
+        <div className="grid gap-8 md:grid-cols-2">
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Name
+            <input
+              type="text"
+              value={formData.name}
+              onChange={handleChange('name')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+              placeholder=" "
+              required
+            />
+          </label>
 
-      <input
-        type="text"
-        placeholder="Report Description"
-        value={formData.description}
-        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        className="w-full mb-4 py-10 px-2 border rounded"
-        
-      />
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-        {editingExpense ? 'Update Expense' : 'Add Expense'}
-      </button>
-    </form>
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Category
+            <input
+              type="text"
+              value={formData.category}
+              onChange={handleChange('category')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+              placeholder=" "
+            />
+          </label>
+          
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Amount
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.amount}
+              onChange={handleChange('amount')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+              placeholder="$ 0.00"
+              required
+            />
+          </label>
+
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Date
+            <input
+              type="date"
+              value={formData.deadline}
+              onChange={handleChange('deadline')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
+              required
+            />
+          </label>
+        </div>
+
+        <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+          Description
+          <textarea
+            value={formData.description}
+            onChange={handleChange('description')}
+            rows={4}
+            className="bg-transparent border border-[#8c8c8c] px-4 py-4 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+            placeholder="Describe this expense"
+          />
+        </label>
+
+        <button
+          type="submit"
+          className="w-full bg-[#f5c400] py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#2d2d2d] shadow-[0_14px_28px_rgba(245,196,0,0.35)] transition-colors duration-200 hover:bg-[#ffd200]"
+        >
+          {editingExpense ? 'Update Expense' : 'Create Expense'}
+        </button>
+      </form>
+    </section>
   );
 };
 
 export default ExpenseForm;
-
-//git checkout -b DFA-5 origin/DFA-5
-//git checkout -b DFA-9
