@@ -49,10 +49,10 @@ const Navbar = () => {
         ) : (
           <>
             <Link to="/login" className={linkClasses}>
-              Sign In
+              Login
             </Link>
             <Link to="/register" className={ctaClasses}>
-              Create Account
+              Sign up
             </Link>
           </>
         )}
