@@ -54,7 +54,6 @@ const deleteBudget = async (req, res) => {
 
 module.exports = { getBudgets, addBudget, updateBudget, deleteBudget };
 
-*/
 
 // src/controllers/BudgetController.js
 import BaseController from './baseController.js';
@@ -101,3 +100,36 @@ export const getBudgets = budgetController.handleRequest;
 export const getBudgetById = budgetController.handleRequest;
 export const updateBudget = budgetController.handleRequest;
 export const deleteBudget = budgetController.handleRequest;
+*/
+
+import BaseController from './baseController.js';
+import BudgetService from '../services/budgetService.js';
+
+class BudgetController extends BaseController {
+  constructor() {
+    super(null);
+    this.budgetService = new BudgetService();
+  }
+
+  async processRequest(req) {
+    const userId = req.user.id;
+
+    if (req.method === 'POST') {
+      // create a new budget
+      return this.budgetService.createBudget({ ...req.body, userId });
+    } else if (req.method === 'GET') {
+      // get all budgets for user
+      return this.budgetService.getBudgetsByUser(userId);
+    } else if (req.method === 'PUT') {
+      const { id } = req.params; // get id from route params
+      return this.budgetService.updateBudget(id, { ...req.body });
+    } else if (req.method === 'DELETE') {
+      const { id } = req.params;
+      return this.budgetService.deleteBudget(id);
+    } else {
+      throw new Error('Method not supported');
+    }
+  }
+}
+
+export default new BudgetController();
