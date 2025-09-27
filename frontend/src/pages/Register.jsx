@@ -6,8 +6,12 @@ const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (key) => (event) => {
+    setFormData((prev) => ({ ...prev, [key]: event.target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     try {
       await axiosInstance.post('/api/auth/register', formData);
       alert('Registration successful. Please log in.');
@@ -18,34 +22,51 @@ const Register = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20">
-      <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
-        <h1 className="text-2xl font-bold mb-4 text-center">Register</h1>
-        <input
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <button type="submit" className="w-full bg-green-600 text-white p-2 rounded">
-          Register
-        </button>
-      </form>
+    <div className="min-h-screen bg-[#4d4d4d] flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm bg-[#5a5a5a] border border-[#707070] px-10 py-12 text-white shadow-[0_0_20px_rgba(0,0,0,0.35)] rounded-none"
+        >
+          <h1 className="text-xl font-semibold uppercase tracking-[0.4em] text-center mb-10">
+            SIGN UP
+          </h1>
+
+          <div className="space-y-6">
+            <input
+              type="text"
+              placeholder="Username"
+              value={formData.name}
+              onChange={handleChange('name')}
+              className="w-full bg-transparent border border-[#8c8c8c] text-white placeholder-[#d9d9d9] rounded-none px-6 py-3 focus:outline-none focus:border-[#f5c400]"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange('email')}
+              className="w-full bg-transparent border border-[#8c8c8c] text-white placeholder-[#d9d9d9] rounded-none px-6 py-3 focus:outline-none focus:border-[#f5c400]"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange('password')}
+              className="w-full bg-transparent border border-[#8c8c8c] text-white placeholder-[#d9d9d9] rounded-none px-6 py-3 focus:outline-none focus:border-[#f5c400]"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="mt-12 w-full bg-[#f5c400] text-[#2d2d2d] font-bold uppercase tracking-[0.3em] py-3 rounded-none transition-colors duration-200 hover:bg-[#ffd200]"
+          >
+            Create Account
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

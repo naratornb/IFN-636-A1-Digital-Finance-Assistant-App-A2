@@ -10,33 +10,49 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const linkClasses =
+    'uppercase tracking-[0.35em] text-xs font-medium text-[#cfcfcf] hover:text-white transition-colors duration-200';
+  const ctaClasses =
+    'uppercase tracking-[0.35em] text-xs font-semibold bg-[#f5c400] text-[#1f1f1f] px-6 py-2 rounded-none shadow-[0_6px_18px_rgba(245,196,0,0.35)] hover:bg-[#ffd200] transition-colors duration-200';
+
   return (
-    <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
-      <Link to="/" className="text-2xl font-bold">Digital Finance Assistant App</Link>
-      <div>
+    <nav className="bg-[#2f2f2f] text-white px-12 py-5 flex items-center justify-between shadow-[0_6px_18px_rgba(0,0,0,0.4)]">
+      <Link
+        to="/dashboard"
+        className="uppercase tracking-[0.8em] text-sm font-semibold text-white hover:text-[#f5c400] transition-colors duration-200"
+      >
+        Maxworth
+      </Link>
+
+      <div className="flex items-center gap-10">
         {user ? (
           <>
-            <Link to="/reports" className="mr-4">Reports</Link>
-            <Link to="/expense" className="mr-4">Expense</Link>
-            <Link to="/budget" className="mr-4">Budget</Link>
-            <Link to="/goal" className="mr-4">Goal</Link>
-            <Link to="/profile" className="mr-4">Profile</Link>
-            
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 px-4 py-2 rounded hover:bg-red-700"
-            >
+            <Link to="/reports" className={linkClasses}>
+              Reports
+            </Link>
+            <Link to="/expense" className={linkClasses}>
+              Expense
+            </Link>
+            <Link to="/budget" className={linkClasses}>
+              Budget
+            </Link>
+            <Link to="/goal" className={linkClasses}>
+              Goals
+            </Link>
+            <Link to="/profile" className={linkClasses}>
+              Profile
+            </Link>
+            <button type="button" onClick={handleLogout} className={ctaClasses}>
               Logout
             </button>
           </>
         ) : (
           <>
-            <Link to="/login" className="mr-4">Login</Link>
-            <Link
-              to="/register"
-              className="bg-green-500 px-4 py-2 rounded hover:bg-green-700"
-            >
-              Register
+            <Link to="/login" className={linkClasses}>
+              Sign In
+            </Link>
+            <Link to="/register" className={ctaClasses}>
+              Create Account
             </Link>
           </>
         )}
