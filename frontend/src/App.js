@@ -14,6 +14,7 @@ import Expense from './pages/Expense';
 function App() {
   return (
     <AuthProvider>
+      <BudgetProvider>
         <ExpenseProvider>
           <Router>
             <Navbar />
@@ -28,6 +29,7 @@ function App() {
             </Routes>
           </Router>
         </ExpenseProvider>
+      </BudgetProvider>
     </AuthProvider>
   );
 }
