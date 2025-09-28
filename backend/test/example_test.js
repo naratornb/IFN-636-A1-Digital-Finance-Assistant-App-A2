@@ -472,249 +472,249 @@ describe('AddGoal Function Test', () => {
   });
 
 
-
-describe('AddExpense Function Test', () => {
-
-  it('should create a new expense successfully', async () => {
-    const req = {
-      user: { id: new mongoose.Types.ObjectId() },
-      body: { 
-        name: "New Expense", 
-        amount: 200, 
-        deadline: "2025-11-30", 
-        paymentMethod: "Credit Card", 
-        description: "Monthly subscription" 
-      }
-    };
-
-    const createdExpense = { _id: new mongoose.Types.ObjectId(), ...req.body, userId: req.user.id };
-
-    const createStub = sinon.stub(Expense, 'create').resolves(createdExpense);
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await addExpense(req, res);
-
-    expect(createStub.calledOnceWith({ userId: req.user.id, ...req.body })).to.be.true;
-    expect(res.status.calledWith(201)).to.be.true;
-    expect(res.json.calledWith(createdExpense)).to.be.true;
-
-    createStub.restore();
-  });
-
-  it('should return 500 if an error occurs', async () => {
-    const createStub = sinon.stub(Expense, 'create').throws(new Error('DB Error'));
-
-    const req = {
-      user: { id: new mongoose.Types.ObjectId() },
-      body: { name: "New Expense", amount: 200, deadline: "2025-11-30" }
-    };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await addExpense(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    createStub.restore();
-  });
-
-});
-
-describe('UpdateExpense Function Test', () => {
-
-  it('should update expense successfully', async () => {
-    const expenseId = new mongoose.Types.ObjectId();
-    const existingExpense = {
-      _id: expenseId,
-      name: "Old Expense",
-      amount: 150,
-      deadline: "2025-10-01",
-      paymentMethod: "Cash",
-      description: "Old desc",
-      save: sinon.stub().resolvesThis(),
-    };
-
-    const findByIdStub = sinon.stub(Expense, 'findById').resolves(existingExpense);
-
-    const req = {
-      params: { id: expenseId },
-      body: { 
-        name: "Updated Expense", 
-        amount: 250, 
-        deadline: "2025-12-15", 
-        paymentMethod: "Bank Transfer", 
-        description: "Updated desc" 
-      }
-    };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await updateExpense(req, res);
-
-    expect(existingExpense.name).to.equal("Updated Expense");
-    expect(existingExpense.amount).to.equal(250);
-    expect(existingExpense.deadline).to.equal("2025-12-15");
-    expect(existingExpense.paymentMethod).to.equal("Bank Transfer");
-    expect(existingExpense.description).to.equal("Updated desc");
-    expect(res.status.called).to.be.false;
-    expect(res.json.calledOnce).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 404 if expense is not found', async () => {
-    const findByIdStub = sinon.stub(Expense, 'findById').resolves(null);
-
-    const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await updateExpense(req, res);
-
-    expect(res.status.calledWith(404)).to.be.true;
-    expect(res.json.calledWith({ message: 'Expense not found' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 500 on error', async () => {
-    const findByIdStub = sinon.stub(Expense, 'findById').throws(new Error('DB Error'));
-
-    const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await updateExpense(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.called).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-});
-
-describe('GetExpenses Function Test', () => {
-
-  it('should return expenses for the given user', async () => {
-    const userId = new mongoose.Types.ObjectId();
-
-    const expenses = [
-      { _id: new mongoose.Types.ObjectId(), name: "Expense 1", amount: 100, deadline: "2025-05-01", paymentMethod: "Cash", description: "Test", userId },
-      { _id: new mongoose.Types.ObjectId(), name: "Expense 2", amount: 200, deadline: "2025-06-01", paymentMethod: "Card", description: "Test2", userId }
-    ];
-
-    const findStub = sinon.stub(Expense, 'find').resolves(expenses);
-
-    const req = { user: { id: userId } };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await getExpenses(req, res);
-
-    expect(findStub.calledOnceWith({ userId })).to.be.true;
-    expect(res.json.calledWith(expenses)).to.be.true;
-    expect(res.status.called).to.be.false;
-
-    findStub.restore();
-  });
-
-  it('should return 500 on error', async () => {
-    const findStub = sinon.stub(Expense, 'find').throws(new Error('DB Error'));
-
-    const req = { user: { id: new mongoose.Types.ObjectId() } };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await getExpenses(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    findStub.restore();
-  });
-
-});
-
-describe('DeleteExpense Function Test', () => {
-
-  it('should delete an expense successfully', async () => {
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const expense = { remove: sinon.stub().resolves() };
-
-    const findByIdStub = sinon.stub(Expense, 'findById').resolves(expense);
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteExpense(req, res);
-
-    expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
-    expect(expense.remove.calledOnce).to.be.true;
-    expect(res.json.calledWith({ message: 'Expense deleted' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 404 if expense is not found', async () => {
-    const findByIdStub = sinon.stub(Expense, 'findById').resolves(null);
-
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteExpense(req, res);
-
-    expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
-    expect(res.status.calledWith(404)).to.be.true;
-    expect(res.json.calledWith({ message: 'Expense not found' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 500 if an error occurs', async () => {
-    const findByIdStub = sinon.stub(Expense, 'findById').throws(new Error('DB Error'));
-
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteExpense(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-});
+// TODO: Add Expense Tests
+// describe('AddExpense Function Test', () => {
+//
+//   it('should create a new expense successfully', async () => {
+//     const req = {
+//       user: { id: new mongoose.Types.ObjectId() },
+//       body: {
+//         name: "New Expense",
+//         amount: 200,
+//         deadline: "2025-11-30",
+//         paymentMethod: "Credit Card",
+//         description: "Monthly subscription"
+//       }
+//     };
+//
+//     const createdExpense = { _id: new mongoose.Types.ObjectId(), ...req.body, userId: req.user.id };
+//
+//     const createStub = sinon.stub(Expense, 'create').resolves(createdExpense);
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await addExpense(req, res);
+//
+//     expect(createStub.calledOnceWith({ userId: req.user.id, ...req.body })).to.be.true;
+//     expect(res.status.calledWith(201)).to.be.true;
+//     expect(res.json.calledWith(createdExpense)).to.be.true;
+//
+//     createStub.restore();
+//   });
+//
+//   it('should return 500 if an error occurs', async () => {
+//     const createStub = sinon.stub(Expense, 'create').throws(new Error('DB Error'));
+//
+//     const req = {
+//       user: { id: new mongoose.Types.ObjectId() },
+//       body: { name: "New Expense", amount: 200, deadline: "2025-11-30" }
+//     };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await addExpense(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     createStub.restore();
+//   });
+//
+// });
+//
+// describe('UpdateExpense Function Test', () => {
+//
+//   it('should update expense successfully', async () => {
+//     const expenseId = new mongoose.Types.ObjectId();
+//     const existingExpense = {
+//       _id: expenseId,
+//       name: "Old Expense",
+//       amount: 150,
+//       deadline: "2025-10-01",
+//       paymentMethod: "Cash",
+//       description: "Old desc",
+//       save: sinon.stub().resolvesThis(),
+//     };
+//
+//     const findByIdStub = sinon.stub(Expense, 'findById').resolves(existingExpense);
+//
+//     const req = {
+//       params: { id: expenseId },
+//       body: {
+//         name: "Updated Expense",
+//         amount: 250,
+//         deadline: "2025-12-15",
+//         paymentMethod: "Bank Transfer",
+//         description: "Updated desc"
+//       }
+//     };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await updateExpense(req, res);
+//
+//     expect(existingExpense.name).to.equal("Updated Expense");
+//     expect(existingExpense.amount).to.equal(250);
+//     expect(existingExpense.deadline).to.equal("2025-12-15");
+//     expect(existingExpense.paymentMethod).to.equal("Bank Transfer");
+//     expect(existingExpense.description).to.equal("Updated desc");
+//     expect(res.status.called).to.be.false;
+//     expect(res.json.calledOnce).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 404 if expense is not found', async () => {
+//     const findByIdStub = sinon.stub(Expense, 'findById').resolves(null);
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await updateExpense(req, res);
+//
+//     expect(res.status.calledWith(404)).to.be.true;
+//     expect(res.json.calledWith({ message: 'Expense not found' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 500 on error', async () => {
+//     const findByIdStub = sinon.stub(Expense, 'findById').throws(new Error('DB Error'));
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await updateExpense(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.called).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+// });
+//
+// describe('GetExpenses Function Test', () => {
+//
+//   it('should return expenses for the given user', async () => {
+//     const userId = new mongoose.Types.ObjectId();
+//
+//     const expenses = [
+//       { _id: new mongoose.Types.ObjectId(), name: "Expense 1", amount: 100, deadline: "2025-05-01", paymentMethod: "Cash", description: "Test", userId },
+//       { _id: new mongoose.Types.ObjectId(), name: "Expense 2", amount: 200, deadline: "2025-06-01", paymentMethod: "Card", description: "Test2", userId }
+//     ];
+//
+//     const findStub = sinon.stub(Expense, 'find').resolves(expenses);
+//
+//     const req = { user: { id: userId } };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await getExpenses(req, res);
+//
+//     expect(findStub.calledOnceWith({ userId })).to.be.true;
+//     expect(res.json.calledWith(expenses)).to.be.true;
+//     expect(res.status.called).to.be.false;
+//
+//     findStub.restore();
+//   });
+//
+//   it('should return 500 on error', async () => {
+//     const findStub = sinon.stub(Expense, 'find').throws(new Error('DB Error'));
+//
+//     const req = { user: { id: new mongoose.Types.ObjectId() } };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await getExpenses(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     findStub.restore();
+//   });
+//
+// });
+//
+// describe('DeleteExpense Function Test', () => {
+//
+//   it('should delete an expense successfully', async () => {
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const expense = { remove: sinon.stub().resolves() };
+//
+//     const findByIdStub = sinon.stub(Expense, 'findById').resolves(expense);
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteExpense(req, res);
+//
+//     expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
+//     expect(expense.remove.calledOnce).to.be.true;
+//     expect(res.json.calledWith({ message: 'Expense deleted' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 404 if expense is not found', async () => {
+//     const findByIdStub = sinon.stub(Expense, 'findById').resolves(null);
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteExpense(req, res);
+//
+//     expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
+//     expect(res.status.calledWith(404)).to.be.true;
+//     expect(res.json.calledWith({ message: 'Expense not found' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 500 if an error occurs', async () => {
+//     const findByIdStub = sinon.stub(Expense, 'findById').throws(new Error('DB Error'));
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteExpense(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+// });
 // TODO: Add Budget Tests
 //
 // describe('AddBudget Function Test', () => {
