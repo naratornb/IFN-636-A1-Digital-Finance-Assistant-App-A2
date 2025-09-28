@@ -1,0 +1,9 @@
+// validateExpense.js
+export const validateExpense = (req, res, next) => {
+    const { name, amount, deadline } = req.body;
+    if (!name || !amount || !deadline) {
+      return res.status(400).json({ message: 'Name, amount, and deadline are required' });
+    }
+    // Additional validation rules if needed
+    next();
+  };
