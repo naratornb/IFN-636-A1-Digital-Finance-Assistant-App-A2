@@ -1,218 +1,203 @@
-// src/components/expenses/ExpenseForm.js
-import React, { useState, useEffect } from 'react';
-import { useExpenseContext } from '../../context/ExpenseContext';
-import { useBudgetContext } from '../../context/BudgetContext';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useBudgetContext } from '../../context/BudgetContext';
+import { useExpenseContext } from '../../context/ExpenseContext';
 
-const ExpenseForm = ({ expenseId, onSave, onCancel }) => {
+const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
   const { user } = useAuth();
-  const { expense, isLoading: expenseLoading, error: expenseError, getExpense, createExpense, updateExpense, clearExpense } = useExpenseContext();
   const { budgets, getBudgets } = useBudgetContext();
+  const { createExpense, updateExpense } = useExpenseContext();
 
   const [formData, setFormData] = useState({
-    category: 'Food',
+    category: 'Other',
     amount: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
     budgetId: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
+  // Categories from the backend model
   const categories = [
     'Housing', 'Transportation', 'Food', 'Utilities',
     'Healthcare', 'Insurance', 'Debt', 'Entertainment',
     'Personal', 'Savings', 'Other'
   ];
 
-  // Fetch expense data when editing and fetch available budgets
-  useEffect(() => {
-    // Get budgets for the dropdown
-    getBudgets();
-
-    // If editing an existing expense, fetch it
-    if (expenseId) {
-      getExpense(expenseId);
-    }
-
-    // Clear expense data when component unmounts
-    return () => clearExpense();
-  }, [expenseId, getBudgets, getExpense, clearExpense]);
-
-  // Update form data when expense is loaded
-  useEffect(() => {
-    if (expense && expenseId) {
-      setFormData({
-        category: expense.category || 'Food',
-        amount: expense.amount || '',
-        date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        description: expense.description || '',
-        budgetId: expense.budgetId || ''
-      });
-    }
-  }, [expense, expenseId]);
-
-  // Update error state from context
-  useEffect(() => {
-    if (expenseError) {
-      setError(expenseError);
-    }
-  }, [expenseError]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      category: 'Other',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      budgetId: ''
+    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Load budgets when component mounts
+  useEffect(() => {
+    if (user?.token) {
+      getBudgets();
+    }
+  }, [getBudgets, user?.token]);
+
+  useEffect(() => {
+    if (editingExpense) {
+      setFormData({
+        category: editingExpense.category || 'Other',
+        amount: editingExpense.amount || '',
+        date: editingExpense.date
+          ? new Date(editingExpense.date).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        description: editingExpense.description || '',
+        budgetId: editingExpense.budgetId || ''
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingExpense]);
+
+  const handleChange = (field) => (event) => {
+    const { value } = event.target;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     try {
+      const expenseData = {
+        ...formData,
+        amount: parseFloat(formData.amount)
+      };
+
+      // If budgetId is empty, set to null so it won't be sent as empty string
+      if (!expenseData.budgetId) {
+        expenseData.budgetId = null;
+      }
+
       let success;
 
-      if (expenseId) {
-        success = await updateExpense(expenseId, formData);
+      if (editingExpense) {
+        success = await updateExpense(editingExpense._id, expenseData);
       } else {
-        success = await createExpense(formData);
+        success = await createExpense(expenseData);
       }
 
       if (success) {
-        // The ExpenseContext has automatically updated the state
-        onSave();
+        setEditingExpense(null);
+        resetForm();
       }
-    } catch (err) {
-      setError(err.message || 'Failed to save expense');
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Failed to save expense:', error);
+      alert('Failed to save expense.');
     }
   };
 
-  // Combine loading states
-  const isLoading = loading || expenseLoading;
+  const handleCancel = () => {
+    setEditingExpense(null);
+    resetForm();
+  };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        {expenseId ? 'Edit Expense' : 'Add New Expense'}
-      </h2>
-
-      {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="category" className="block text-gray-700 text-sm font-medium mb-1">
+    <section className="bg-[#5a5a5a] border border-[#707070] px-5 py-12 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+      <h1 className="text-3xl font-light uppercase tracking-[0.6em] mb-10">
+        {editingExpense ? 'Edit Expense' : 'Create Expense'}
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-10">
+        <div className="grid gap-8 md:grid-cols-2">
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
             Category
-          </label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="amount" className="block text-gray-700 text-sm font-medium mb-1">
-            Amount
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">$</span>
-            </div>
-            <input
-              type="number"
-              id="amount"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
+            <select
+              value={formData.category}
+              onChange={handleChange('category')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
               required
-              className="pl-7 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-        </div>
+            >
+              {categories.map(category => (
+                <option key={category} value={category} className="bg-[#5a5a5a]">
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+          
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Amount
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none">
+                <span className="text-[#bfbfbf] text-base">$</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.amount}
+                onChange={handleChange('amount')}
+                className="pl-7 w-full bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </label>
 
-        <div className="mb-4">
-          <label htmlFor="date" className="block text-gray-700 text-sm font-medium mb-1">
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
             Date
+            <input
+              type="date"
+              value={formData.date}
+              onChange={handleChange('date')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
+              required
+            />
           </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
+
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Budget (Optional)
+            <select
+              value={formData.budgetId}
+              onChange={handleChange('budgetId')}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
+            >
+              <option value="" className="bg-[#5a5a5a]">None</option>
+              {budgets?.map(budget => (
+                <option key={budget._id} value={budget._id} className="bg-[#5a5a5a]">
+                  {budget.period} Budget (${budget.totalBudget})
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-gray-700 text-sm font-medium mb-1">
-            Description
-          </label>
+        <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+          Description
           <textarea
-            id="description"
-            name="description"
             value={formData.description}
-            onChange={handleChange}
-            rows="3"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            onChange={handleChange('description')}
+            rows={4}
+            className="bg-transparent border border-[#8c8c8c] px-4 py-4 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+            placeholder="Describe this expense"
           />
-        </div>
+        </label>
 
-        <div className="mb-6">
-          <label htmlFor="budgetId" className="block text-gray-700 text-sm font-medium mb-1">
-            Link to Budget (Optional)
-          </label>
-          <select
-            id="budgetId"
-            name="budgetId"
-            value={formData.budgetId}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Select a budget</option>
-            {Array.isArray(budgets) && budgets.map(budget => (
-              <option key={budget._id} value={budget._id}>
-                {budget.name || `${budget.period?.charAt(0).toUpperCase() + budget.period?.slice(1)} Budget`} - ${budget.amount || budget.totalBudget}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex justify-end space-x-3">
+        <div className="flex gap-4">
           <button
             type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            onClick={handleCancel}
+            className="flex-1 py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#dfdfdf] border border-[#8c8c8c] transition-colors duration-200 hover:bg-[#707070]"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="flex-1 bg-[#f5c400] py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#2d2d2d] shadow-[0_14px_28px_rgba(245,196,0,0.35)] transition-colors duration-200 hover:bg-[#ffd200]"
           >
-            {isLoading ? 'Saving...' : 'Save'}
+            {editingExpense ? 'Update Expense' : 'Create Expense'}
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 };
 
 export default ExpenseForm;
-

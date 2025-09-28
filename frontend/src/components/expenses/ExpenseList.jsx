@@ -1,187 +1,112 @@
-// src/components/expenses/ExpenseList.js
-import React, { useState, useEffect } from 'react';
-import ExpenseCard from './ExpenseCard.jsx';
-import ExpenseForm from './ExpenseForm.jsx';
+import { useEffect } from 'react';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { useAuth } from '../../context/AuthContext';
 import { useExpenseContext } from '../../context/ExpenseContext';
 
-const ExpenseList = () => {
-  const { expenses, isLoading, error, getExpenses, resetSuccess } = useExpenseContext();
-  const [showForm, setShowForm] = useState(false);
-  const [editingExpenseId, setEditingExpenseId] = useState(null);
-  const [filters, setFilters] = useState({
-    category: '',
-    startDate: '',
-    endDate: ''
-  });
+const ExpenseList = ({ setEditingExpense }) => {
+  const { user } = useAuth();
+  const { expenses, deleteExpense, getExpenses } = useExpenseContext();
 
+  // Fetch expenses when component mounts
   useEffect(() => {
-    // Fetch expenses when component mounts
-    getExpenses();
+    if (user?.token) {
+      getExpenses();
+    }
+  }, [getExpenses, user?.token]);
 
-    // Clean up success state when component unmounts
-    return () => resetSuccess();
-  }, [getExpenses, resetSuccess]);
+  const handleDelete = async (expenseId) => {
+    const confirmed = window.confirm('Are you sure you want to delete this expense?');
+    if (!confirmed) return;
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    try {
+      await deleteExpense(expenseId);
+      // No need to manually update state - the context handles it
+    } catch (error) {
+      alert('Failed to delete expense.');
+    }
   };
 
-  const handleApplyFilters = () => {
-    const params = {};
-    if (filters.category) params.category = filters.category;
-    if (filters.startDate) params.startDate = filters.startDate;
-    if (filters.endDate) params.endDate = filters.endDate;
+  // Helper function to safely format currency
+  const formatCurrency = (amount) => {
+    // Check if amount exists and is a number
+    if (amount === undefined || amount === null) {
+      return '$0.00';
+    }
 
-    getExpenses(params);
+    // Convert to number if it's a string
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+
+    // Check if it's a valid number
+    if (isNaN(numAmount)) {
+      return '$0.00';
+    }
+
+    return `$${numAmount.toFixed(2)}`;
   };
-
-  const handleSave = () => {
-    setShowForm(false);
-    setEditingExpenseId(null);
-    // No need to manually refresh - ExpenseContext handles state updates
-    // We'll still apply any active filters to keep the view consistent
-    handleApplyFilters();
-  };
-
-  const handleEdit = (expenseId) => {
-    setEditingExpenseId(expenseId);
-    setShowForm(true);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      category: '',
-      startDate: '',
-      endDate: ''
-    });
-    getExpenses(); // Get all expenses without filters
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingExpenseId(null);
-  };
-
-  const categories = [
-    'Housing', 'Transportation', 'Food', 'Utilities',
-    'Healthcare', 'Insurance', 'Debt', 'Entertainment',
-    'Personal', 'Savings', 'Other'
-  ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Your Expenses</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          {showForm ? 'Cancel' : '+ Add Expense'}
-        </button>
-      </div>
-
-      {showForm && (
-        <ExpenseForm
-          expenseId={editingExpenseId}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
-      )}
-
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Filter Expenses</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              name="category"
-              value={filters.category}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Date
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+    <section className="bg-[#3f3f3f] border border-[#5c5c5c] px-8 py-10 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+      <h2 className="mb-8 text-lg font-semibold uppercase tracking-[0.4em] text-[#f0f0f0]">
+        History
+      </h2>
+      <div className="overflow-x-auto">
+        <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[minmax(140px,1fr)_minmax(100px,1fr)_minmax(140px,1fr)_minmax(120px,0.8fr)_0.6fr] md:gap-6 md:border-b md:border-[#5c5c5c] md:pb-4">
+          <span className="text-left">Description</span>
+          <span className="text-left">Amount</span>
+          <span className="text-left">Category</span>
+          <span className="text-left">Date</span>
+          <span className="text-left">Action</span>
         </div>
-        <div className="mt-4 flex justify-end space-x-3">
-          <button
-            onClick={handleClearFilters}
-            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-          >
-            Clear
-          </button>
-          <button
-            onClick={handleApplyFilters}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Apply Filters
-          </button>
+
+        <div className="mt-6 space-y-6">
+          {Array.isArray(expenses) && expenses.length > 0 ? (
+            expenses.map((expense) => (
+              <div
+                key={expense._id}
+                className="grid items-center gap-4 text-xs text-[#f5f5f5] md:grid-cols-[minmax(140px,1fr)_minmax(100px,1fr)_minmax(140px,1fr)_minmax(120px,0.8fr)_0.6fr]"
+              >
+                <span className="text-left font-medium uppercase tracking-[0.2em] break-words whitespace-normal">
+                  {expense.description || 'No description'}
+                </span>
+                <span className="text-left break-words whitespace-normal max-w-[120px]">
+                  {formatCurrency(expense.amount)}
+                </span>
+                <span className="text-left uppercase tracking-[0.15em] break-words whitespace-normal max-w-[140px]">
+                  {expense.category || '—'}
+                </span>
+                <span className="text-left">
+                  {expense.date
+                    ? new Date(expense.date).toLocaleDateString()
+                    : '—'}
+                </span>
+                <div className="flex items-center gap-0 text-left">
+                  <button
+                    type="button"
+                    onClick={() => setEditingExpense(expense)}
+                    className="rounded-full border border-transparent p-2 text-[#f5c400] transition-colors duration-200 hover:border-[#f5c400] hover:text-[#ffd200]"
+                    aria-label={`Edit ${expense.description || 'expense'}`}
+                  >
+                    <FiEdit2 size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(expense._id)}
+                    className="rounded-full border border-transparent p-2 text-[#ff6b6b] transition-colors duration-200 hover:border-[#ff6b6b] hover:text-[#ff8787]"
+                    aria-label={`Delete ${expense.description || 'expense'}`}
+                  >
+                    <FiTrash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-6">
+              No expenses found. Create one to get started.
+            </div>
+          )}
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
-          {error}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="text-center py-10">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
-          <p className="mt-2 text-gray-600">Loading expenses...</p>
-        </div>
-      ) : Array.isArray(expenses) && expenses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {expenses.map(expense => (
-            <ExpenseCard
-              key={expense._id}
-              expense={expense}
-              onEdit={handleEdit}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-10 bg-gray-50 rounded-lg">
-          <p className="text-lg text-gray-600">No expenses found.</p>
-          <p className="text-gray-500 mt-1">
-            {Object.values(filters).some(Boolean) ? 'Try changing your filters.' : 'Add your first expense to get started.'}
-          </p>
-        </div>
-      )}
-    </div>
+    </section>
   );
 };
 

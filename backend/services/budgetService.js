@@ -1,4 +1,3 @@
-// src/services/BudgetService.js
 import Budget from '../models/Budget.js';
 import BudgetRepository from '../repositories/budgetRepository.js';
 import {
@@ -46,9 +45,9 @@ class BudgetService {
     return this.budgetRepository.findByUser(userId);
   }
 
-  async getBudgetById(id) {
-    return this.budgetRepository.findById(id);
-  }
+  async getBudgetById(id, userId) {
+  return this.budgetRepository.findById(id, userId);
+}
 
   async updateBudget(id, updateData) {
     return this.budgetRepository.update(id, updateData);

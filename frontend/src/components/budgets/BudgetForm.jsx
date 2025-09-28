@@ -1,18 +1,17 @@
-// src/components/budgets/BudgetForm.js
 import React, { useState, useEffect } from 'react';
 import { useBudgetContext } from '../../context/BudgetContext';
 import { useAuth } from '../../context/AuthContext';
+import BudgetService from '../../services/BudgetService';
 
 const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const { user } = useAuth();
   const {
     budget,
-    isLoading: contextLoading,
-    error: contextError,
     getBudget,
     createBudget,
     updateBudget,
-    clearBudget
+    clearBudget,
+    error: contextError
   } = useBudgetContext();
 
   const [formData, setFormData] = useState({
@@ -24,10 +23,39 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch budget data when editing
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      period: 'monthly',
+      totalBudget: '',
+      startDate: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    setError('');
+  };
+
   useEffect(() => {
-    if (budgetId) {
-      getBudget(budgetId);
+    if (budgetId && user?.token) {
+      const fetchBudget = async () => {
+        try {
+          const response = await BudgetService.getBudgetById(user.token, budgetId);
+          const budget = response.data;
+          setFormData({
+            period: budget.period,
+            totalBudget: budget.totalBudget,
+            startDate: budget.startDate
+              ? new Date(budget.startDate).toISOString().split('T')[0]
+              : new Date().toISOString().split('T')[0],
+            notes: budget.notes || ''
+          });
+        } catch (err) {
+          setError('Failed to fetch budget data');
+        }
+      };
+      fetchBudget();
+    } else {
+      // Reset form when budgetId is null (creating new budget)
+      resetForm();
     }
 
     // Clear budget data when component unmounts
@@ -66,7 +94,10 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     setError('');
 
     try {
-      // Ensure totalBudget is a number
+      if (!user?.token) {
+        throw new Error('You must be logged in to perform this action');
+      }
+
       const budgetData = {
         ...formData,
         totalBudget: parseFloat(formData.totalBudget)
@@ -91,108 +122,113 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     }
   };
 
-  // Use either local or context loading state
-  const isLoading = loading || contextLoading;
+  const handleCancel = () => {
+    resetForm();
+    onCancel();
+  };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        {budgetId ? 'Edit Budget' : 'Create New Budget'}
-      </h2>
+    <section className="bg-[#5a5a5a] border border-[#707070] px-5 py-12 shadow-[0_18px_36px_rgba(0,0,0,0.35)] w-full max-w-full">
+      <h1 className="text-3xl font-light uppercase tracking-[0.6em] mb-10">
+        {budgetId ? 'Edit Budget' : 'Create Budget'}
+      </h1>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4">
+        <div className="bg-red-900 bg-opacity-30 text-red-400 p-3 rounded-md mb-6 text-center">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="period" className="block text-gray-700 text-sm font-medium mb-1">
+      <form onSubmit={handleSubmit} className="space-y-10 w-full">
+        <div className="grid gap-8 md:grid-cols-2 w-full">
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
             Period
-          </label>
-          <select
-            id="period"
-            name="period"
-            value={formData.period}
-            onChange={handleChange}
-            disabled={budgetId}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
-            required
-          >
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="startDate" className="block text-gray-700 text-sm font-medium mb-1">
-            Start Date
-          </label>
-          <input
-            type="date"
-            id="startDate"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="totalBudget" className="block text-gray-700 text-sm font-medium mb-1">
-            Total Budget
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">$</span>
-            </div>
-            <input
-              type="number"
-              id="totalBudget"
-              name="totalBudget"
-              value={formData.totalBudget}
+            <select
+              name="period"
+              value={formData.period}
               onChange={handleChange}
-              min="0"
-              step="0.01"
+              disabled={budgetId}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none disabled:opacity-50 w-full"
               required
-              className="pl-7 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="weekly" className="bg-[#5a5a5a]">Weekly</option>
+              <option value="monthly" className="bg-[#5a5a5a]">Monthly</option>
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Start Date
+            <input
+              type="date"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none w-full"
             />
-          </div>
+          </label>
+
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Total Budget
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none">
+                <span className="text-[#bfbfbf] text-base">$</span>
+              </div>
+              <input
+                type="number"
+                name="totalBudget"
+                value={formData.totalBudget}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+                className="pl-7 w-full bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+                placeholder="0.00"
+              />
+            </div>
+          </label>
+
+          <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+            Status
+            <input
+              type="text"
+              value={budgetId ? 'Active' : 'New'}
+              disabled
+              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none disabled:opacity-50 w-full"
+              readOnly
+            />
+          </label>
         </div>
 
-        <div className="mb-6">
-          <label htmlFor="notes" className="block text-gray-700 text-sm font-medium mb-1">
-            Notes
-          </label>
+        <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
+          Notes
           <textarea
-            id="notes"
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            rows="3"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            rows={4}
+            className="bg-transparent border border-[#8c8c8c] px-4 py-4 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none w-full"
+            placeholder="Add any notes about this budget"
           />
-        </div>
+        </label>
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex gap-4 w-full">
           <button
             type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            onClick={handleCancel}
+            className="flex-1 py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#dfdfdf] border border-[#8c8c8c] transition-colors duration-200 hover:bg-[#707070]"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            disabled={loading}
+            className="flex-1 bg-[#f5c400] py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#2d2d2d] shadow-[0_14px_28px_rgba(245,196,0,0.35)] transition-colors duration-200 hover:bg-[#ffd200] disabled:opacity-50"
           >
-            {isLoading ? 'Saving...' : 'Save'}
+            {loading ? 'Saving...' : (budgetId ? 'Update Budget' : 'Create Budget')}
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 };
 

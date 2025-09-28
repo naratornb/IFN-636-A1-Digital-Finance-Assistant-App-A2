@@ -19,16 +19,19 @@ class BudgetController extends BaseController {
 
   async processRequest(req) {
     const userId = req.user.id;
+    const id = req.params.id;
 
     switch (req.method) {
       case 'POST':
         return this.budgetService.createBudget({ ...req.body, userId });
       case 'GET':
-        // Check if we're getting a specific budget or all budgets
-        if (req.params.id) {
-          return this.budgetService.getBudgetById(req.params.id, userId);
-        }
-        return this.budgetService.getBudgetsByUser(userId);
+          if (id) {
+            // If an id is present in params, return budget by id
+            return this.budgetService.getBudgetById(id, userId);
+          } else {
+            // Otherwise, return all budgets for the user
+            return this.budgetService.getBudgetsByUser(userId);
+          }
       case 'PUT':
         // Extract budget ID from request parameters
         if (!req.params.id) {
@@ -49,10 +52,8 @@ class BudgetController extends BaseController {
 
 // Using Decorator Pattern to add authentication
 const budgetController = new BudgetController();
-
-// Create handlers for specific endpoints
-export const createBudget = (req, res) => budgetController.handleRequest(req, res);
-export const getBudgets = (req, res) => budgetController.handleRequest(req, res);
-export const getBudgetById = (req, res) => budgetController.handleRequest(req, res);
-export const updateBudget = (req, res) => budgetController.handleRequest(req, res);
-export const deleteBudget = (req, res) => budgetController.handleRequest(req, res);
+export const createBudget = budgetController.handleRequest;
+export const getBudgets = budgetController.handleRequest;
+export const getBudgetById = budgetController.handleRequest;
+export const updateBudget = budgetController.handleRequest;
+export const deleteBudget = budgetController.handleRequest;
