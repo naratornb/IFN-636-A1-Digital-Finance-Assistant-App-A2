@@ -6,15 +6,19 @@ const ExpenseList = ({ expenses, setExpenses, setEditingExpense }) => {
   const { user } = useAuth();
 
   const handleDelete = async (expenseId) => {
-    try {
-      await axiosInstance.delete(`/api/expenses/${expenseId}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      setExpenses(expenses.filter((expense) => expense._id !== expenseId));
-    } catch (error) {
-      alert('Failed to delete expense.');
-    }
-  };
+  const confirmed = window.confirm('Are you sure you want to delete this expense?');
+  if (!confirmed) return;
+
+  try {
+    await axiosInstance.delete(`/api/expenses/${expenseId}`, {
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
+    setExpenses(expenses.filter((expense) => expense._id !== expenseId));
+  } catch (error) {
+    alert('Failed to delete expense.');
+  }
+};
+
 
   return (
     <section className="bg-[#3f3f3f] border border-[#5c5c5c] px-8 py-10 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">

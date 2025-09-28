@@ -7,12 +7,14 @@ import Reports from './pages/Reports';
 import Budget from './pages/Budget';
 import Goal from './pages/Goal';
 import Expense from './pages/Expense';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />

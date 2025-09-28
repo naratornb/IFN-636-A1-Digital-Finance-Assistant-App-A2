@@ -78,12 +78,19 @@ class BudgetController extends BaseController {
 
   async processRequest(req) {
     const userId = req.user.id;
+    const id = req.params.id;
 
     switch (req.method) {
       case 'POST':
         return this.budgetService.createBudget({ ...req.body, userId });
       case 'GET':
-          return this.budgetService.getBudgetsByUser(userId);
+          if (id) {
+            // If an id is present in params, return budget by id
+            return this.budgetService.getBudgetById(id, userId);
+          } else {
+            // Otherwise, return all budgets for the user
+            return this.budgetService.getBudgetsByUser(userId);
+          }
       case 'PUT':
         return this.budgetService.updateBudget(id, req.body);
       case 'DELETE':

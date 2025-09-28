@@ -1,5 +1,3 @@
-// Repository Pattern: Mediates between the domain and data mapping layers
-
 export default class BaseRepository {
   constructor(model) {
     this.model = model;
@@ -10,8 +8,8 @@ export default class BaseRepository {
     return entity.save();
   }
 
-  async findById(id) {
-    return this.model.findById(id).exec();
+  async findById(id, userId) {
+    return this.model.findOne({ _id: id, userId }).exec();
   }
 
   async find(filter = {}) {

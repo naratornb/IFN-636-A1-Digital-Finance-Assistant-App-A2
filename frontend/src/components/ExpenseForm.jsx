@@ -17,6 +17,17 @@ const ExpenseForm = ({
     description: '',
   });
 
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      amount: '',
+      deadline: '',
+      paymentMethod: '',
+      description: '',
+    });
+  };
+
   useEffect(() => {
     if (editingExpense) {
       setFormData({
@@ -27,13 +38,7 @@ const ExpenseForm = ({
         description: editingExpense.description || '',
       });
     } else {
-      setFormData({
-        name: '',
-        amount: '',
-        deadline: '',
-        paymentMethod: '',
-        description: '',
-      });
+      resetForm();
     }
   }, [editingExpense]);
 
@@ -63,22 +68,21 @@ const ExpenseForm = ({
         setExpenses([...expenses, data]);
       }
       setEditingExpense(null);
-      setFormData({
-        name: '',
-        amount: '',
-        deadline: '',
-        paymentMethod: '',
-        description: '',
-      });
+      resetForm();
     } catch (error) {
       alert('Failed to save expense.');
     }
   };
 
+  const handleCancel = () => {
+    setEditingExpense(null);
+    resetForm();
+  };
+
   return (
     <section className="bg-[#5a5a5a] border border-[#707070] px-5 py-12 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
       <h1 className="text-3xl font-light uppercase tracking-[0.6em] mb-10">
-        Expense
+        {editingExpense ? 'Edit Expense' : 'Create Expense'}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-10">
         <div className="grid gap-8 md:grid-cols-2">
@@ -142,12 +146,21 @@ const ExpenseForm = ({
           />
         </label>
 
-        <button
-          type="submit"
-          className="w-full bg-[#f5c400] py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#2d2d2d] shadow-[0_14px_28px_rgba(245,196,0,0.35)] transition-colors duration-200 hover:bg-[#ffd200]"
-        >
-          {editingExpense ? 'Update Expense' : 'Create Expense'}
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="flex-1 py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#dfdfdf] border border-[#8c8c8c] transition-colors duration-200 hover:bg-[#707070]"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 bg-[#f5c400] py-4 text-center text-sm font-semibold uppercase tracking-[0.35em] text-[#2d2d2d] shadow-[0_14px_28px_rgba(245,196,0,0.35)] transition-colors duration-200 hover:bg-[#ffd200]"
+          >
+            {editingExpense ? 'Update Expense' : 'Create Expense'}
+          </button>
+        </div>
       </form>
     </section>
   );
