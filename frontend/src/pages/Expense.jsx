@@ -1,28 +1,12 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../axiosConfig';
-import ExpenseForm from '../components/ExpenseForm';
-import ExpenseList from '../components/ExpenseList';
-import { useAuth } from '../context/AuthContext';
+// src/pages/Expenses.js
+import React, { useState } from 'react';
+import ExpenseList from '../components/expenses/ExpenseList.jsx';
+import ExpenseForm from '../components/expenses/ExpenseForm.jsx';
+import { useExpenseContext } from '../context/ExpenseContext';
 
 const Expenses = () => {
-  const { user } = useAuth();
-  const [expenses, setExpenses] = useState([]);
+  const { expenses } = useExpenseContext();
   const [editingExpense, setEditingExpense] = useState(null);
-
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const response = await axiosInstance.get('/api/expenses', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setExpenses(response.data);
-      } catch (error) {
-        alert('Failed to fetch expenses.');
-      }
-    };
-
-    fetchExpenses();
-  }, [user]);
 
   return (
     <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
@@ -32,8 +16,6 @@ const Expenses = () => {
             {/* Expense Form - Fixed 40% width */}
             <div className="w-full lg:w-[45%]">
               <ExpenseForm
-                expenses={expenses}
-                setExpenses={setExpenses}
                 editingExpense={editingExpense}
                 setEditingExpense={setEditingExpense}
               />
@@ -42,8 +24,6 @@ const Expenses = () => {
             {/* Expense List - Flexible remaining space */}
             <div className="w-full lg:w-[55%]">
               <ExpenseList
-                expenses={expenses}
-                setExpenses={setExpenses}
                 setEditingExpense={setEditingExpense}
               />
             </div>

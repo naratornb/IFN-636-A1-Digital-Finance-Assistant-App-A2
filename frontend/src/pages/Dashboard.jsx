@@ -40,16 +40,24 @@ const Dashboard = () => {
         // Fetch budgets
         const budgetsResponse = await BudgetService.getBudgets(user.token);
         
-        // Process data
-        const expenses = expensesResponse.data;
-        const budgets = budgetsResponse.data;
-        
-        // Calculate totals
-        const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-        const totalBudget = budgets.reduce((sum, budget) => sum + parseFloat(budget.totalBudget), 0);
+        const expenses = Array.isArray(expensesResponse.data)
+          ? expensesResponse.data
+          : (expensesResponse.data.expenses || expensesResponse.data.data || []);
+
+        const budgets = Array.isArray(budgetsResponse)
+          ? budgetsResponse
+          : (budgetsResponse.budgets || budgetsResponse.data || []);
+
+        const totalExpenses = expenses.length > 0
+          ? expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
+          : 0;
+
+        const totalBudget = budgets.length > 0
+          ? budgets.reduce((sum, budget) => sum + (parseFloat(budget.totalBudget) || 0), 0)
+          : 0;
+
         const remainingBudget = totalBudget - totalExpenses;
         
-        // Process expense trend (last 6 months)
         const expenseTrend = [];
         const currentDate = new Date();
         for (let i = 5; i >= 0; i--) {
@@ -57,34 +65,40 @@ const Dashboard = () => {
           const monthName = monthDate.toLocaleString('default', { month: 'short' });
           
           const monthExpenses = expenses.filter(expense => {
-            const expenseDate = new Date(expense.deadline);
-            return expenseDate.getMonth() === monthDate.getMonth() && 
+            const expenseDate = expense.date ? new Date(expense.date) : null;
+            if (!expenseDate) return false;
+
+            return expenseDate.getMonth() === monthDate.getMonth() &&
                    expenseDate.getFullYear() === monthDate.getFullYear();
           });
           
-          const monthTotal = monthExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-          
+          const monthTotal = monthExpenses.length > 0
+            ? monthExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
+            : 0;
+
           expenseTrend.push({
             name: monthName,
             amount: monthTotal
           });
         }
         
-        // Process budget comparison (last 6 months)
         const budgetComparison = [];
         for (let i = 5; i >= 0; i--) {
           const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
           const monthName = monthDate.toLocaleString('default', { month: 'short' });
           
           const monthExpenses = expenses.filter(expense => {
-            const expenseDate = new Date(expense.deadline);
-            return expenseDate.getMonth() === monthDate.getMonth() && 
+            const expenseDate = expense.date ? new Date(expense.date) : null;
+            if (!expenseDate) return false;
+
+            return expenseDate.getMonth() === monthDate.getMonth() &&
                    expenseDate.getFullYear() === monthDate.getFullYear();
           });
           
-          const monthExpenseTotal = monthExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-          
-          // Find budget for this month
+          const monthExpenseTotal = monthExpenses.length > 0
+            ? monthExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
+            : 0;
+
           const monthBudget = budgets.find(budget => {
             const budgetStart = new Date(budget.startDate);
             return budgetStart.getMonth() === monthDate.getMonth() && 
@@ -103,11 +117,11 @@ const Dashboard = () => {
         // Process top categories
         const categoryMap = {};
         expenses.forEach(expense => {
-          const category = expense.paymentMethod || 'Other';
+          const category = expense.category || 'Other';
           if (!categoryMap[category]) {
             categoryMap[category] = 0;
           }
-          categoryMap[category] += parseFloat(expense.amount);
+          categoryMap[category] += parseFloat(expense.amount) || 0;
         });
         
         const topCategories = Object.entries(categoryMap)
@@ -117,9 +131,13 @@ const Dashboard = () => {
         
         // Process recent transactions
         const recentTransactions = expenses
-          .sort((a, b) => new Date(b.deadline) - new Date(a.deadline))
+          .sort((a, b) => {
+            const dateA = a.date ? new Date(a.date) : new Date(0);
+            const dateB = b.date ? new Date(b.date) : new Date(0);
+            return dateB - dateA;
+          })
           .slice(0, 5);
-        
+
         setDashboardData({
           totalExpenses,
           totalBudget,
@@ -321,24 +339,30 @@ const Dashboard = () => {
           <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
             <h2 className="text-xl font-semibold uppercase tracking-[0.15em] mb-6">Top Spending Categories</h2>
             <div className="space-y-4">
-              {dashboardData.topCategories.map((category, index) => {
-                const percentage = (category.value / dashboardData.totalExpenses) * 100;
-                return (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">{category.name}</span>
-                      <span className="text-sm font-semibold">${category.value.toFixed(2)}</span>
+              {dashboardData.topCategories.length > 0 ? (
+                dashboardData.topCategories.map((category, index) => {
+                  const percentage = (category.value / dashboardData.totalExpenses) * 100;
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">{category.name}</span>
+                        <span className="text-sm font-semibold">${category.value.toFixed(2)}</span>
+                      </div>
+                      <div className="w-full bg-[#4a4a4a] rounded-full h-2">
+                        <div
+                          className="bg-[#f5c400] h-2 rounded-full transition-all duration-500 ease-in-out"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-[#cfcfcf]">{percentage.toFixed(1)}% of total</div>
                     </div>
-                    <div className="w-full bg-[#4a4a4a] rounded-full h-2">
-                      <div 
-                        className="bg-[#f5c400] h-2 rounded-full transition-all duration-500 ease-in-out"
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-[#cfcfcf]">{percentage.toFixed(1)}% of total</div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="text-center text-gray-400">
+                  No category data available
+                </div>
+              )}
             </div>
           </div>
 
@@ -346,17 +370,23 @@ const Dashboard = () => {
           <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
             <h2 className="text-xl font-semibold uppercase tracking-[0.15em] mb-6">Recent Transactions</h2>
             <div className="space-y-4">
-              {dashboardData.recentTransactions.map((transaction, index) => (
-                <div key={index} className="flex items-center justify-between pb-3 border-b border-[#4a4a4a]">
-                  <div>
-                    <p className="font-medium">{transaction.name}</p>
-                    <p className="text-xs text-[#cfcfcf]">
-                      {new Date(transaction.deadline).toLocaleDateString()} • {transaction.paymentMethod || 'Other'}
-                    </p>
+              {dashboardData.recentTransactions.length > 0 ? (
+                dashboardData.recentTransactions.map((transaction, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm font-medium">{transaction.description || 'Unnamed Transaction'}</div>
+                      <div className="text-xs text-[#cfcfcf]">
+                        {transaction.date ? new Date(transaction.date).toLocaleDateString() : 'No date'} • {transaction.category || 'Uncategorized'}
+                      </div>
+                    </div>
+                    <span className="font-semibold text-[#f87171]">-${parseFloat(transaction.amount).toFixed(2)}</span>
                   </div>
-                  <span className="font-semibold text-[#f87171]">-${parseFloat(transaction.amount).toFixed(2)}</span>
+                ))
+              ) : (
+                <div className="text-center text-gray-400">
+                  No recent transactions
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

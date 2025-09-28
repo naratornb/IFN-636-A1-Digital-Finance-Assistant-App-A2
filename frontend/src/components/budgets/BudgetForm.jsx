@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import BudgetService from '../../services/BudgetService.jsx';
+import { useBudgetContext } from '../../context/BudgetContext';
 import { useAuth } from '../../context/AuthContext';
+import BudgetService from '../../services/BudgetService';
 
 const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const { user } = useAuth();
+  const {
+    budget,
+    getBudget,
+    createBudget,
+    updateBudget,
+    clearBudget,
+    error: contextError
+  } = useBudgetContext();
+
   const [formData, setFormData] = useState({
     period: 'monthly',
     totalBudget: '',
@@ -47,7 +57,31 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       // Reset form when budgetId is null (creating new budget)
       resetForm();
     }
-  }, [budgetId, user?.token]);
+
+    // Clear budget data when component unmounts
+    return () => clearBudget();
+  }, [budgetId, getBudget, clearBudget]);
+
+  // Update form when budget data is loaded
+  useEffect(() => {
+    if (budget && budgetId) {
+      setFormData({
+        period: budget.period || 'monthly',
+        totalBudget: budget.totalBudget || '',
+        startDate: budget.startDate
+          ? new Date(budget.startDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        notes: budget.notes || ''
+      });
+    }
+  }, [budget, budgetId]);
+
+  // Update error state from context
+  useEffect(() => {
+    if (contextError) {
+      setError(contextError);
+    }
+  }, [contextError]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,14 +103,20 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
         totalBudget: parseFloat(formData.totalBudget)
       };
 
+      let success;
+
       if (budgetId) {
-        await BudgetService.updateBudget(user.token, budgetId, budgetData);
+        success = await updateBudget(budgetId, budgetData);
       } else {
-        await BudgetService.createBudget(user.token, budgetData);
+        success = await createBudget(budgetData);
       }
-      onSave();
+
+      if (success) {
+        // State is automatically updated via context
+        onSave();
+      }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to save budget');
+      setError(err.message || 'Failed to save budget');
     } finally {
       setLoading(false);
     }
