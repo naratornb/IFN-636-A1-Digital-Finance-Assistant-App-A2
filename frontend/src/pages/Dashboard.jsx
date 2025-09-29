@@ -56,6 +56,16 @@ const Dashboard = () => {
     remainingPercentage
   } = dashboardData;
 
+  if (!user?.token) {
+    return (
+      <div className="min-h-screen bg-[#4d4d4d] flex flex-col justify-center items-center">
+        <h1 className="text-4xl font-bold text-[#f5c400] mb-6">Welcome to MAXWORTH</h1>
+        <p className="text-lg text-[#cfcfcf] mb-8">Please log in to access your financial dashboard.</p>
+        <a href="/login" className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-500 transition-colors duration-300 font-medium uppercase tracking-[0.35em]">Log In</a>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#4d4d4d] flex justify-center items-center">
@@ -172,52 +182,93 @@ const Dashboard = () => {
           </div>
 
           {/* Budget Status */}
-          <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
-            <div className="flex items-center mb-6">
-              <FiTrendingUp className="text-[#4ade80] mr-2" />
-              <h2 className="text-xl font-semibold uppercase tracking-[0.15em]">Budget Status</h2>
-            </div>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Total Budget</span>
-                  <span className="text-sm font-semibold">${totalBudget.toFixed(2)}</span>
-                </div>
-                <div className="w-full bg-[#4a4a4a] rounded-full h-3">
-                  <div 
-                    className="bg-[#60a5fa] h-3 rounded-full"
-                    style={{ width: '100%' }}
-                  ></div>
-                </div>
+          {/* Conditional rendering for goals */}
+          {dashboardData.goals && dashboardData.goals.length > 0 ? (
+            // Pie chart for current/target
+            <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)] flex flex-col items-center">
+              <div className="flex items-center mb-6">
+                <FiPieChart className="text-[#f5c400] mr-2" />
+                <h2 className="text-xl font-semibold uppercase tracking-[0.15em]">Goal Progress</h2>
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Amount Spent</span>
-                  <span className="text-sm font-semibold">${totalExpenses.toFixed(2)}</span>
-                </div>
-                <div className="w-full bg-[#4a4a4a] rounded-full h-3">
-                  <div 
-                    className="bg-[#f87171] h-3 rounded-full transition-all duration-500 ease-in-out"
-                    style={{ width: `${spentPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t border-[#4a4a4a]">
-                <div className="flex items-center">
-                  {remainingBudget >= 0 ? (
-                    <FiArrowDown className="text-[#4ade80] mr-2" />
-                  ) : (
-                    <FiArrowUp className="text-[#f87171] mr-2" />
-                  )}
-                  <span className={`text-sm font-medium ${remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                    {remainingBudget >= 0 ? 'Under budget by' : 'Over budget by'} ${Math.abs(remainingBudget).toFixed(2)}
-                  </span>
-                </div>
+              {/* Pie chart for first goal */}
+              {(() => {
+                const goal = dashboardData.goals[0];
+                const current = parseFloat(goal.current || 0);
+                const target = parseFloat(goal.target || 1);
+                const percent = Math.min((current / target) * 100, 100);
+                return (
+                  <div className="relative w-48 h-48 rounded-full mb-6">
+                    <div 
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: `conic-gradient(#f5c400 0% ${percent}%, #707070 ${percent}% 100%)`
+                      }}
+                    ></div>
+                    <div className="absolute inset-8 bg-[#5a5a5a] rounded-full flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{percent.toFixed(1)}%</div>
+                        <div className="text-xs text-[#cfcfcf]">Saved</div>
+                        <div className="text-xs text-[#cfcfcf]">${current.toFixed(2)} / ${target.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="text-center">
+                <div className="text-lg font-semibold">{dashboardData.goals[0].name}</div>
+                <div className="text-xs text-[#cfcfcf]">Deadline: {dashboardData.goals[0].deadline ? new Date(dashboardData.goals[0].deadline).toLocaleDateString() : 'N/A'}</div>
+                <div className="text-xs text-[#cfcfcf]">Description: {dashboardData.goals[0].description || 'No description'}</div>
               </div>
             </div>
-          </div>
+          ) : (
+            // Budget status if no goals
+            <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+              <div className="flex items-center mb-6">
+                <FiTrendingUp className="text-[#4ade80] mr-2" />
+                <h2 className="text-xl font-semibold uppercase tracking-[0.15em]">Budget Status</h2>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Total Budget</span>
+                    <span className="text-sm font-semibold">${totalBudget.toFixed(2)}</span>
+                  </div>
+                  <div className="w-full bg-[#4a4a4a] rounded-full h-3">
+                    <div 
+                      className="bg-[#60a5fa] h-3 rounded-full"
+                      style={{ width: '100%' }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Amount Spent</span>
+                    <span className="text-sm font-semibold">${totalExpenses.toFixed(2)}</span>
+                  </div>
+                  <div className="w-full bg-[#4a4a4a] rounded-full h-3">
+                    <div 
+                      className="bg-[#f87171] h-3 rounded-full transition-all duration-500 ease-in-out"
+                      style={{ width: `${spentPercentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-[#4a4a4a]">
+                  <div className="flex items-center">
+                    {remainingBudget >= 0 ? (
+                      <FiArrowDown className="text-[#4ade80] mr-2" />
+                    ) : (
+                      <FiArrowUp className="text-[#f87171] mr-2" />
+                    )}
+                    <span className={`text-sm font-medium ${remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                      {remainingBudget >= 0 ? 'Under budget by' : 'Over budget by'} ${Math.abs(remainingBudget).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Additional Info */}

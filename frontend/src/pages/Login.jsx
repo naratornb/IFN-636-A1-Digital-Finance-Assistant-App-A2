@@ -17,9 +17,9 @@ const Login = () => {
     try {
       const response = await axiosInstance.post('/api/auth/login', formData);
       login(response.data);
-      navigate('/tasks');
+      navigate('/');
     } catch (error) {
-      alert('Login failed. Please try again.');
+      alert('Log In failed. Please try again.');
     }
   };
 
@@ -31,7 +31,7 @@ const Login = () => {
           className="w-full max-w-sm bg-[#5a5a5a] border border-[#707070] px-10 py-12 text-white shadow-[0_0_20px_rgba(0,0,0,0.35)] rounded-none"
         >
           <h1 className="text-xl font-semibold uppercase tracking-[0.4em] text-center mb-10">
-            LOGIN
+            LOG IN
           </h1>
 
           <div className="space-y-6">
