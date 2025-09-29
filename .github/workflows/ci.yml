@@ -47,6 +47,8 @@ jobs:
 
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Shallow clone to save disk space
 
       # Set up Node.js
       - name: Setup Node.js
@@ -70,13 +72,27 @@ jobs:
       - name: Stop PM2 processes if any
         run: pm2 list | grep -q '[online]' && pm2 stop all || echo "No PM2 processes to stop"
 
-      # Install dependencies for backend
+      # Clean previous build artifacts to ensure fresh installation
+      - name: Clean previous build artifacts
+        run: |
+          rm -rf ./backend/node_modules ./frontend/node_modules
+          rm -rf ./backend/package-lock.json ./frontend/package-lock.json
+          rm -rf ./backend/yarn.lock ./frontend/yarn.lock
+
+      # Install dependencies for backend with proper approach to fix iconv-lite issue
       - name: Install Backend Dependencies
         working-directory: ./backend
         run: |
+          echo "Installing global yarn..."
           npm install --global yarn
           yarn --version
-          yarn install
+          echo "Reinstalling backend dependencies from scratch..."
+          # Complete removal of node_modules to ensure clean install
+          rm -rf node_modules
+          # First install iconv-lite explicitly to ensure it's properly installed
+          yarn add iconv-lite
+          # Then install all dependencies
+          yarn install --frozen-lockfile
 
       # Create frontend .env file dynamically from GitHub secrets
       - name: Create Frontend Environment File
@@ -89,14 +105,19 @@ jobs:
       - name: Install Frontend Dependencies
         working-directory: ./frontend
         run: |
+          echo "==== Disk space before frontend build ===="
           df -h
-          sudo rm -rf ./build
-          # Remove package-lock.json to avoid the warning
+          rm -rf ./build
+          # Remove package-lock.json to avoid conflicts
           rm -f package-lock.json
-          yarn install
+          # Clean install of dependencies
+          yarn install --frozen-lockfile
           # Set CI=false to prevent treating warnings as errors
           CI=false yarn run build
-      
+          # Remove node_modules after build to save space
+          rm -rf node_modules
+          echo "==== Disk space after frontend build ===="
+          df -h
 
       # Run backend tests
       - name: Run Backend Tests
@@ -107,21 +128,25 @@ jobs:
         working-directory: ./backend
         run: npm test
 
-
-      - run: npm ci
-      - run: |
+      - name: Setup backend environment
+        run: |
           cd ./backend
           touch .env
           echo "${{ vars.PROD }}" > .env
 
-      - run: pm2 start all
+      # Combine PM2 steps to be more efficient
+      - name: Start/Restart PM2 processes
+        run: |
+          cd ./backend
+          pm2 start all || echo "No PM2 processes to start"
+          pm2 restart all || echo "No PM2 processes to restart"
 
-      - run: pm2 restart all      # Final cleanup step
+      # Final cleanup step
       - name: Final cleanup
         if: always()  # Run even if previous steps fail
         run: |
           echo "====== PERFORMING FINAL CLEANUP ======"
           # Clean any remaining build artifacts
-          rm -rf ./frontend/node_modules ./backend/node_modules || echo "No node_modules to clean"
+          rm -rf ./frontend/node_modules || echo "No frontend node_modules to clean"
           # Final disk space check
           df -h
