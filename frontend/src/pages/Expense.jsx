@@ -11,18 +11,15 @@ const Expenses = () => {
   return (
     <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
       <div className="flex-1 px-6 py-10 lg:px-16">
-        <div className="mx-auto w-full max-w-20xl">
-          <div className="flex flex-nowrap gap-5">
-            {/* Expense Form - Fixed 40% width */}
-            <div className="w-full lg:w-[45%]">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="flex flex-col lg:flex-row flex-wrap gap-5 items-start">
+            <div className="flex-1 min-w-[300px] max-w-[500px]">
               <ExpenseForm
                 editingExpense={editingExpense}
                 setEditingExpense={setEditingExpense}
               />
             </div>
-
-            {/* Expense List - Flexible remaining space */}
-            <div className="w-full lg:w-[55%]">
+            <div className="flex-1 min-w-[300px]">
               <ExpenseList
                 setEditingExpense={setEditingExpense}
               />
