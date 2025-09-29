@@ -39,7 +39,7 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
           <p className="text-[#cfcfcf] mb-4">Create your first goal to start tracking your savings.</p>
         </div>
       ) : (
-        <div className="w-full">
+        <div className="w-full overflow-x-auto">
           {/* Header row - hidden on mobile, visible on medium screens and above */}
           <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_160px_160px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
             <span className="text-left">Name</span>
