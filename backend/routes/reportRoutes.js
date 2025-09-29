@@ -1,10 +1,12 @@
-
 const express = require('express');
-const { getReports, addReport, updateReport, deleteReport } = require('../controllers/reportController');
-const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
+const reportController = require('../controllers/reportController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.route('/').get(protect, getReports).post(protect, addReport);
-router.route('/:id').put(protect, updateReport).delete(protect, deleteReport);
+// GET dashboard data
+router.get('/', protect, reportController.getDashboardData.bind(reportController));
+
+module.exports = router;
+router.route('/pdf').get(protect, reportController.generatePdf);
 
 module.exports = router;

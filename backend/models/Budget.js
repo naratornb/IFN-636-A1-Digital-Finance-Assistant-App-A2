@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const budgetSchema = new mongoose.Schema({
   userId: {
@@ -44,4 +44,5 @@ budgetSchema.virtual('status').get(function() {
   return now > this.endDate ? 'expired' : 'active';
 });
 
-export default mongoose.model('Budget', budgetSchema);
+const Budget = mongoose.model('Budget', budgetSchema);
+module.exports = Budget;
