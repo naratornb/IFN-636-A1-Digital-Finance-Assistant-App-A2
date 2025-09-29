@@ -15,8 +15,17 @@ const Budgets = () => {
     try {
       setLoading(true);
       const response = await BudgetService.getBudgets(user.token);
-      setBudgets(response.data);
+
+      // Check if response has the expected structure (could be nested in .data property)
+      const budgetData = response.data || response;
+
+      // Log the response to debug
+      console.log("Budget API response:", response);
+      console.log("Budget data to display:", budgetData);
+
+      setBudgets(Array.isArray(budgetData) ? budgetData : []);
     } catch (err) {
+      console.error("Error fetching budgets:", err);
       setError('Failed to fetch budgets');
     } finally {
       setLoading(false);
@@ -30,7 +39,7 @@ const Budgets = () => {
       setError('You must be logged in to view budgets');
       setLoading(false);
     }
-  }, [user?.token, fetchBudgets]); // ✅ no ESLint warning
+  }, [user?.token, fetchBudgets]);
 
   const handleSave = () => {
     setEditingBudget(null);

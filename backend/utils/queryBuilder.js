@@ -31,4 +31,4 @@ class QueryBuilder {
   }
 }
 
-export default QueryBuilder;
+module.exports = QueryBuilder;

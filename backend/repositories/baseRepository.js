@@ -1,4 +1,4 @@
-export default class BaseRepository {
+class BaseRepository {
   constructor(model) {
     this.model = model;
   }
@@ -9,19 +9,24 @@ export default class BaseRepository {
   }
 
   async findById(id, userId) {
-    return this.model.findOne({ _id: id, userId }).exec();
+    // If userId is provided, ensure the entity belongs to the user
+    if (userId) {
+      return this.model.findOne({ _id: id, userId });
+    }
+    return this.model.findById(id);
   }
 
-  async find(filter = {}) {
-    return this.model.find(filter).exec();
+  async findAll() {
+    return this.model.find();
   }
 
   async update(id, data) {
-    return this.model.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.model.findByIdAndUpdate(id, data, { new: true });
   }
 
   async delete(id) {
-    const result = await this.model.deleteOne({ _id: id }).exec();
-    return result.deletedCount > 0;
+    return this.model.findByIdAndDelete(id);
   }
 }
+
+module.exports = BaseRepository;

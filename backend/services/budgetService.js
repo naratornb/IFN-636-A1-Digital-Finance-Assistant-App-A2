@@ -4,7 +4,10 @@ import {
   startOfWeek,
   endOfWeek,
   startOfMonth,
-  endOfMonth
+  endOfMonth,
+  addDays,
+  addMonths,
+  subDays
 } from 'date-fns';
 
 // OOP Principle: Abstraction Single Responsibility - Service handles only budget-related logic
@@ -16,18 +19,24 @@ class BudgetService {
 
 
   async createBudget(budgetData) {
-    const { userId, period, totalBudget, notes } = budgetData;
+    const { userId, period, totalBudget, notes, startDate: userStartDate } = budgetData;
 
-    // Set start and end dates based on period
     let startDate, endDate;
-    const now = new Date();
+    const dateToUse = userStartDate ? new Date(userStartDate) : new Date();
 
     if (period === 'weekly') {
-      startDate = startOfWeek(now, { weekStartsOn: 1 }); // Monday
-      endDate = endOfWeek(now, { weekStartsOn: 1 });
+      startDate = userStartDate ? dateToUse : startOfWeek(dateToUse, { weekStartsOn: 1 });
+
+      endDate = addDays(new Date(startDate), 6);
+
+      endDate.setHours(23, 59, 59, 999);
     } else { // monthly
-      startDate = startOfMonth(now);
-      endDate = endOfMonth(now);
+      startDate = userStartDate ? dateToUse : startOfMonth(dateToUse);
+
+      const nextMonth = addMonths(new Date(startDate), 1);
+      endDate = subDays(nextMonth, 1);
+
+      endDate.setHours(23, 59, 59, 999);
     }
 
     const budget = {
@@ -46,9 +55,8 @@ class BudgetService {
   }
 
   async getBudgetById(id, userId) {
-  return this.budgetRepository.findById(id, userId);
-}
-
+    return this.budgetRepository.findById(id, userId);
+  }
   async updateBudget(id, updateData) {
     return this.budgetRepository.update(id, updateData);
   }

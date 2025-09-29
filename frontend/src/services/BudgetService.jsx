@@ -27,7 +27,10 @@ class BudgetService {
       }
     };
     const response = await this.api.get(API_URL, config);
-    return response.data;
+
+    // Check if response data has the expected structure with a data property
+    // If it does, return the nested data, otherwise return the entire response.data
+    return response.data.data ? { data: response.data.data } : response.data;
   }
 
   // Retrieves a budget by ID using the same authorization pattern
@@ -38,7 +41,7 @@ class BudgetService {
       }
     };
     const response = await this.api.get(`${API_URL}${id}`, config);
-    return response.data;
+    return response.data.data ? response.data.data : response.data;
   }
 
   // Updates a budget by ID using the same authorization pattern
@@ -64,5 +67,4 @@ class BudgetService {
   }
 }
 
-const budgetService = new BudgetService();
-export default budgetService;
+export default new BudgetService();
