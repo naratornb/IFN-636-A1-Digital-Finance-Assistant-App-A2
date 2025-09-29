@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FiDollarSign, FiTrendingUp, FiPieChart, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
-import BudgetService from '../services/BudgetService';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,7 +14,9 @@ const Dashboard = () => {
     expenseTrend: [],
     budgetComparison: [],
     topCategories: [],
-    recentTransactions: []
+    recentTransactions: [],
+    spentPercentage: 0,
+    remainingPercentage: 100
   });
 
   useEffect(() => {
@@ -23,130 +24,13 @@ const Dashboard = () => {
       try {
         setLoading(true);
         
-        // Calculate date range (last 365 days)
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(endDate.getDate() - 365);
-        
-        // Fetch expenses
-        const expensesResponse = await axiosInstance.get('/api/expenses', {
-          headers: { Authorization: `Bearer ${user.token}` },
-          params: {
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: endDate.toISOString().split('T')[0]
-          }
+        // Fetch dashboard data from backend API
+        const response = await axiosInstance.get('/api/reports', {
+          headers: { Authorization: `Bearer ${user.token}` }
         });
         
-        // Fetch budgets
-        const budgetsResponse = await BudgetService.getBudgets(user.token);
-        
-        const expenses = Array.isArray(expensesResponse.data)
-          ? expensesResponse.data
-          : (expensesResponse.data.expenses || expensesResponse.data.data || []);
-
-        const budgets = Array.isArray(budgetsResponse)
-          ? budgetsResponse
-          : (budgetsResponse.budgets || budgetsResponse.data || []);
-
-        const totalExpenses = expenses.length > 0
-          ? expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
-          : 0;
-
-        const totalBudget = budgets.length > 0
-          ? budgets.reduce((sum, budget) => sum + (parseFloat(budget.totalBudget) || 0), 0)
-          : 0;
-
-        const remainingBudget = totalBudget - totalExpenses;
-        
-        const expenseTrend = [];
-        const currentDate = new Date();
-        for (let i = 5; i >= 0; i--) {
-          const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-          const monthName = monthDate.toLocaleString('default', { month: 'short' });
-          
-          const monthExpenses = expenses.filter(expense => {
-            const expenseDate = expense.date ? new Date(expense.date) : null;
-            if (!expenseDate) return false;
-
-            return expenseDate.getMonth() === monthDate.getMonth() &&
-                   expenseDate.getFullYear() === monthDate.getFullYear();
-          });
-          
-          const monthTotal = monthExpenses.length > 0
-            ? monthExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
-            : 0;
-
-          expenseTrend.push({
-            name: monthName,
-            amount: monthTotal
-          });
-        }
-        
-        const budgetComparison = [];
-        for (let i = 5; i >= 0; i--) {
-          const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-          const monthName = monthDate.toLocaleString('default', { month: 'short' });
-          
-          const monthExpenses = expenses.filter(expense => {
-            const expenseDate = expense.date ? new Date(expense.date) : null;
-            if (!expenseDate) return false;
-
-            return expenseDate.getMonth() === monthDate.getMonth() &&
-                   expenseDate.getFullYear() === monthDate.getFullYear();
-          });
-          
-          const monthExpenseTotal = monthExpenses.length > 0
-            ? monthExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0)
-            : 0;
-
-          const monthBudget = budgets.find(budget => {
-            const budgetStart = new Date(budget.startDate);
-            return budgetStart.getMonth() === monthDate.getMonth() && 
-                   budgetStart.getFullYear() === monthDate.getFullYear();
-          });
-          
-          const monthBudgetTotal = monthBudget ? parseFloat(monthBudget.totalBudget) : 0;
-          
-          budgetComparison.push({
-            name: monthName,
-            expenses: monthExpenseTotal,
-            budget: monthBudgetTotal
-          });
-        }
-        
-        // Process top categories
-        const categoryMap = {};
-        expenses.forEach(expense => {
-          const category = expense.category || 'Other';
-          if (!categoryMap[category]) {
-            categoryMap[category] = 0;
-          }
-          categoryMap[category] += parseFloat(expense.amount) || 0;
-        });
-        
-        const topCategories = Object.entries(categoryMap)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([name, value]) => ({ name, value }));
-        
-        // Process recent transactions
-        const recentTransactions = expenses
-          .sort((a, b) => {
-            const dateA = a.date ? new Date(a.date) : new Date(0);
-            const dateB = b.date ? new Date(b.date) : new Date(0);
-            return dateB - dateA;
-          })
-          .slice(0, 5);
-
-        setDashboardData({
-          totalExpenses,
-          totalBudget,
-          remainingBudget,
-          expenseTrend,
-          budgetComparison,
-          topCategories,
-          recentTransactions
-        });
+        // Set the dashboard data from the response
+        setDashboardData(response.data.data || response.data);
       } catch (err) {
         setError('Failed to fetch dashboard data');
         console.error(err);
@@ -163,11 +47,14 @@ const Dashboard = () => {
     }
   }, [user?.token]);
 
-  // Calculate percentages for pie chart
-  const spentPercentage = dashboardData.totalBudget > 0 
-    ? (dashboardData.totalExpenses / dashboardData.totalBudget) * 100 
-    : 0;
-  const remainingPercentage = 100 - spentPercentage;
+  // Get the values from dashboardData
+  const {
+    totalExpenses,
+    totalBudget,
+    remainingBudget,
+    spentPercentage,
+    remainingPercentage
+  } = dashboardData;
 
   if (loading) {
     return (
@@ -204,7 +91,7 @@ const Dashboard = () => {
               </div>
               <h2 className="text-lg font-semibold uppercase tracking-[0.15em]">Total Expenses</h2>
             </div>
-            <p className="text-3xl font-bold mb-2">${dashboardData.totalExpenses.toFixed(2)}</p>
+            <p className="text-3xl font-bold mb-2">${totalExpenses.toFixed(2)}</p>
             <p className="text-sm text-[#cfcfcf]">Last 365 days</p>
           </div>
 
@@ -215,7 +102,7 @@ const Dashboard = () => {
               </div>
               <h2 className="text-lg font-semibold uppercase tracking-[0.15em]">Total Budget</h2>
             </div>
-            <p className="text-3xl font-bold mb-2">${dashboardData.totalBudget.toFixed(2)}</p>
+            <p className="text-3xl font-bold mb-2">${totalBudget.toFixed(2)}</p>
             <p className="text-sm text-[#cfcfcf]">Last 365 days</p>
           </div>
 
@@ -226,11 +113,11 @@ const Dashboard = () => {
               </div>
               <h2 className="text-lg font-semibold uppercase tracking-[0.15em]">Remaining Budget</h2>
             </div>
-            <p className={`text-3xl font-bold mb-2 ${dashboardData.remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-              ${Math.abs(dashboardData.remainingBudget).toFixed(2)}
+            <p className={`text-3xl font-bold mb-2 ${remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+              ${Math.abs(remainingBudget).toFixed(2)}
             </p>
             <p className="text-sm text-[#cfcfcf]">
-              {dashboardData.remainingBudget >= 0 ? 'Under budget' : 'Over budget'}
+              {remainingBudget >= 0 ? 'Under budget' : 'Over budget'}
             </p>
           </div>
         </div>
@@ -270,14 +157,14 @@ const Dashboard = () => {
                   <div className="w-4 h-4 bg-[#f87171] rounded mr-2"></div>
                   <div>
                     <div className="text-sm font-medium">Spent</div>
-                    <div className="text-xs text-[#cfcfcf]">${dashboardData.totalExpenses.toFixed(2)} ({spentPercentage.toFixed(1)}%)</div>
+                    <div className="text-xs text-[#cfcfcf]">${totalExpenses.toFixed(2)} ({spentPercentage.toFixed(1)}%)</div>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-[#60a5fa] rounded mr-2"></div>
                   <div>
                     <div className="text-sm font-medium">Remaining</div>
-                    <div className="text-xs text-[#cfcfcf]">${Math.abs(dashboardData.remainingBudget).toFixed(2)} ({remainingPercentage.toFixed(1)}%)</div>
+                    <div className="text-xs text-[#cfcfcf]">${Math.abs(remainingBudget).toFixed(2)} ({remainingPercentage.toFixed(1)}%)</div>
                   </div>
                 </div>
               </div>
@@ -294,7 +181,7 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Total Budget</span>
-                  <span className="text-sm font-semibold">${dashboardData.totalBudget.toFixed(2)}</span>
+                  <span className="text-sm font-semibold">${totalBudget.toFixed(2)}</span>
                 </div>
                 <div className="w-full bg-[#4a4a4a] rounded-full h-3">
                   <div 
@@ -307,7 +194,7 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Amount Spent</span>
-                  <span className="text-sm font-semibold">${dashboardData.totalExpenses.toFixed(2)}</span>
+                  <span className="text-sm font-semibold">${totalExpenses.toFixed(2)}</span>
                 </div>
                 <div className="w-full bg-[#4a4a4a] rounded-full h-3">
                   <div 
@@ -319,13 +206,13 @@ const Dashboard = () => {
               
               <div className="pt-4 border-t border-[#4a4a4a]">
                 <div className="flex items-center">
-                  {dashboardData.remainingBudget >= 0 ? (
+                  {remainingBudget >= 0 ? (
                     <FiArrowDown className="text-[#4ade80] mr-2" />
                   ) : (
                     <FiArrowUp className="text-[#f87171] mr-2" />
                   )}
-                  <span className={`text-sm font-medium ${dashboardData.remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-                    {dashboardData.remainingBudget >= 0 ? 'Under budget by' : 'Over budget by'} ${Math.abs(dashboardData.remainingBudget).toFixed(2)}
+                  <span className={`text-sm font-medium ${remainingBudget >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+                    {remainingBudget >= 0 ? 'Under budget by' : 'Over budget by'} ${Math.abs(remainingBudget).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -341,7 +228,7 @@ const Dashboard = () => {
             <div className="space-y-4">
               {dashboardData.topCategories.length > 0 ? (
                 dashboardData.topCategories.map((category, index) => {
-                  const percentage = (category.value / dashboardData.totalExpenses) * 100;
+                  const percentage = (category.value / totalExpenses) * 100;
                   return (
                     <div key={index} className="space-y-2">
                       <div className="flex justify-between">

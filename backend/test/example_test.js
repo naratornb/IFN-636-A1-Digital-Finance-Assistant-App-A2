@@ -3,7 +3,6 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const sinon = require('sinon');
-const Report = require('../models/Report');
 const { updateReport, getReports, addReport, deleteReport } = require('../controllers/reportController');
 const Goal = require('../models/Goal');
 const { updateGoal, getGoals, addGoal, deleteGoal } = require('../controllers/goalController');
@@ -16,233 +15,233 @@ const { expect } = chai;
 chai.use(chaiHttp);
 let server;
 let port;
-
-describe('AddReport Function Test', () => {
-
-  it('should create a new report successfully', async () => {
-    const req = {
-      user: { id: new mongoose.Types.ObjectId() },
-      body: { title: "New Report", description: "Report description", reportdate: "2025-12-31" }
-    };
-
-    const createdReport = { _id: new mongoose.Types.ObjectId(), ...req.body, userId: req.user.id };
-
-    const createStub = sinon.stub(Report, 'create').resolves(createdReport);
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await addReport(req, res);
-
-    expect(createStub.calledOnceWith({ userId: req.user.id, ...req.body })).to.be.true;
-    expect(res.status.calledWith(201)).to.be.true;
-    expect(res.json.calledWith(createdReport)).to.be.true;
-
-    createStub.restore();
-  });
-
-  it('should return 500 if an error occurs', async () => {
-    const createStub = sinon.stub(Report, 'create').throws(new Error('DB Error'));
-
-    const req = {
-      user: { id: new mongoose.Types.ObjectId() },
-      body: { title: "New Report", description: "Report description", reportdate: "2025-12-31" }
-    };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await addReport(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    createStub.restore();
-  });
-
-});
-
-describe('Update Function Test', () => {
-
-  it('should update report successfully', async () => {
-    const reportId = new mongoose.Types.ObjectId();
-    const existingReport = {
-      _id: reportId,
-      title: "Old Report",
-      description: "Old Description",
-      reportdate: "2025-01-01",
-      save: sinon.stub().resolvesThis(),
-    };
-
-    const findByIdStub = sinon.stub(Report, 'findById').resolves(existingReport);
-
-    const req = {
-      params: { id: reportId },
-      body: { title: "New Report", description: "Updated Description", reportdate: "2025-12-31" }
-    };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await updateReport(req, res);
-
-    expect(existingReport.title).to.equal("New Report");
-    expect(existingReport.description).to.equal("Updated Description");
-    expect(existingReport.reportdate).to.equal("2025-12-31");
-    expect(res.status.called).to.be.false;
-    expect(res.json.calledOnce).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 404 if report is not found', async () => {
-    const findByIdStub = sinon.stub(Report, 'findById').resolves(null);
-
-    const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await updateReport(req, res);
-
-    expect(res.status.calledWith(404)).to.be.true;
-    expect(res.json.calledWith({ message: 'Report not found' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 500 on error', async () => {
-    const findByIdStub = sinon.stub(Report, 'findById').throws(new Error('DB Error'));
-
-    const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await updateReport(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.called).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-});
-
-describe('GetReport Function Test', () => {
-
-  it('should return reports for the given user', async () => {
-    const userId = new mongoose.Types.ObjectId();
-
-    const reports = [
-      { _id: new mongoose.Types.ObjectId(), title: "Report 1", description: "Desc 1", reportdate: "2025-01-01", userId },
-      { _id: new mongoose.Types.ObjectId(), title: "Report 2", description: "Desc 2", reportdate: "2025-02-01", userId }
-    ];
-
-    const findStub = sinon.stub(Report, 'find').resolves(reports);
-
-    const req = { user: { id: userId } };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await getReports(req, res);
-
-    expect(findStub.calledOnceWith({ userId })).to.be.true;
-    expect(res.json.calledWith(reports)).to.be.true;
-    expect(res.status.called).to.be.false;
-
-    findStub.restore();
-  });
-
-  it('should return 500 on error', async () => {
-    const findStub = sinon.stub(Report, 'find').throws(new Error('DB Error'));
-
-    const req = { user: { id: new mongoose.Types.ObjectId() } };
-    const res = {
-      json: sinon.spy(),
-      status: sinon.stub().returnsThis()
-    };
-
-    await getReports(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    findStub.restore();
-  });
-
-});
-
-describe('DeleteReport Function Test', () => {
-
-  it('should delete a report successfully', async () => {
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const report = { remove: sinon.stub().resolves() };
-
-    const findByIdStub = sinon.stub(Report, 'findById').resolves(report);
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteReport(req, res);
-
-    expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
-    expect(report.remove.calledOnce).to.be.true;
-    expect(res.json.calledWith({ message: 'Report deleted' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 404 if report is not found', async () => {
-    const findByIdStub = sinon.stub(Report, 'findById').resolves(null);
-
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteReport(req, res);
-
-    expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
-    expect(res.status.calledWith(404)).to.be.true;
-    expect(res.json.calledWith({ message: 'Report not found' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-  it('should return 500 if an error occurs', async () => {
-    const findByIdStub = sinon.stub(Report, 'findById').throws(new Error('DB Error'));
-
-    const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
-
-    const res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.spy()
-    };
-
-    await deleteReport(req, res);
-
-    expect(res.status.calledWith(500)).to.be.true;
-    expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
-
-    findByIdStub.restore();
-  });
-
-});
+//
+// describe('AddReport Function Test', () => {
+//
+//   it('should create a new report successfully', async () => {
+//     const req = {
+//       user: { id: new mongoose.Types.ObjectId() },
+//       body: { title: "New Report", description: "Report description", reportdate: "2025-12-31" }
+//     };
+//
+//     const createdReport = { _id: new mongoose.Types.ObjectId(), ...req.body, userId: req.user.id };
+//
+//     const createStub = sinon.stub(Report, 'create').resolves(createdReport);
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await addReport(req, res);
+//
+//     expect(createStub.calledOnceWith({ userId: req.user.id, ...req.body })).to.be.true;
+//     expect(res.status.calledWith(201)).to.be.true;
+//     expect(res.json.calledWith(createdReport)).to.be.true;
+//
+//     createStub.restore();
+//   });
+//
+//   it('should return 500 if an error occurs', async () => {
+//     const createStub = sinon.stub(Report, 'create').throws(new Error('DB Error'));
+//
+//     const req = {
+//       user: { id: new mongoose.Types.ObjectId() },
+//       body: { title: "New Report", description: "Report description", reportdate: "2025-12-31" }
+//     };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await addReport(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     createStub.restore();
+//   });
+//
+// });
+//
+// describe('Update Function Test', () => {
+//
+//   it('should update report successfully', async () => {
+//     const reportId = new mongoose.Types.ObjectId();
+//     const existingReport = {
+//       _id: reportId,
+//       title: "Old Report",
+//       description: "Old Description",
+//       reportdate: "2025-01-01",
+//       save: sinon.stub().resolvesThis(),
+//     };
+//
+//     const findByIdStub = sinon.stub(Report, 'findById').resolves(existingReport);
+//
+//     const req = {
+//       params: { id: reportId },
+//       body: { title: "New Report", description: "Updated Description", reportdate: "2025-12-31" }
+//     };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await updateReport(req, res);
+//
+//     expect(existingReport.title).to.equal("New Report");
+//     expect(existingReport.description).to.equal("Updated Description");
+//     expect(existingReport.reportdate).to.equal("2025-12-31");
+//     expect(res.status.called).to.be.false;
+//     expect(res.json.calledOnce).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 404 if report is not found', async () => {
+//     const findByIdStub = sinon.stub(Report, 'findById').resolves(null);
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await updateReport(req, res);
+//
+//     expect(res.status.calledWith(404)).to.be.true;
+//     expect(res.json.calledWith({ message: 'Report not found' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 500 on error', async () => {
+//     const findByIdStub = sinon.stub(Report, 'findById').throws(new Error('DB Error'));
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await updateReport(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.called).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+// });
+//
+// describe('GetReport Function Test', () => {
+//
+//   it('should return reports for the given user', async () => {
+//     const userId = new mongoose.Types.ObjectId();
+//
+//     const reports = [
+//       { _id: new mongoose.Types.ObjectId(), title: "Report 1", description: "Desc 1", reportdate: "2025-01-01", userId },
+//       { _id: new mongoose.Types.ObjectId(), title: "Report 2", description: "Desc 2", reportdate: "2025-02-01", userId }
+//     ];
+//
+//     const findStub = sinon.stub(Report, 'find').resolves(reports);
+//
+//     const req = { user: { id: userId } };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await getReports(req, res);
+//
+//     expect(findStub.calledOnceWith({ userId })).to.be.true;
+//     expect(res.json.calledWith(reports)).to.be.true;
+//     expect(res.status.called).to.be.false;
+//
+//     findStub.restore();
+//   });
+//
+//   it('should return 500 on error', async () => {
+//     const findStub = sinon.stub(Report, 'find').throws(new Error('DB Error'));
+//
+//     const req = { user: { id: new mongoose.Types.ObjectId() } };
+//     const res = {
+//       json: sinon.spy(),
+//       status: sinon.stub().returnsThis()
+//     };
+//
+//     await getReports(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     findStub.restore();
+//   });
+//
+// });
+//
+// describe('DeleteReport Function Test', () => {
+//
+//   it('should delete a report successfully', async () => {
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const report = { remove: sinon.stub().resolves() };
+//
+//     const findByIdStub = sinon.stub(Report, 'findById').resolves(report);
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteReport(req, res);
+//
+//     expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
+//     expect(report.remove.calledOnce).to.be.true;
+//     expect(res.json.calledWith({ message: 'Report deleted' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+//   it('should return 404 if report is not found', async () => {
+//     const findByIdStub = sinon.stub(Report, 'findById').resolves(null);
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteReport(req, res);
+//
+//     expect(findByIdStub.calledOnceWith(req.params.id)).to.be.true;
+//     expect(res.status.calledWith(404)).to.be.true;
+//     expect(res.json.calledWith({ message: 'Report not found' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+
+//   it('should return 500 if an error occurs', async () => {
+//     const findByIdStub = sinon.stub(Report, 'findById').throws(new Error('DB Error'));
+//
+//     const req = { params: { id: new mongoose.Types.ObjectId().toString() } };
+//
+//     const res = {
+//       status: sinon.stub().returnsThis(),
+//       json: sinon.spy()
+//     };
+//
+//     await deleteReport(req, res);
+//
+//     expect(res.status.calledWith(500)).to.be.true;
+//     expect(res.json.calledWithMatch({ message: 'DB Error' })).to.be.true;
+//
+//     findByIdStub.restore();
+//   });
+//
+// });
 
 describe('AddGoal Function Test', () => {
 

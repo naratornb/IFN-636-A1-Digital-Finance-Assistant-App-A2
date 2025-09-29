@@ -57,3 +57,4 @@ export const getBudgets = budgetController.handleRequest;
 export const getBudgetById = budgetController.handleRequest;
 export const updateBudget = budgetController.handleRequest;
 export const deleteBudget = budgetController.handleRequest;
+

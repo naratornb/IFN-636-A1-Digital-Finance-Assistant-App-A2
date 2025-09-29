@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const budgetSchema = new mongoose.Schema({
   userId: {
@@ -30,7 +30,9 @@ const budgetSchema = new mongoose.Schema({
     required: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Index for efficient querying by user and period
@@ -39,7 +41,8 @@ budgetSchema.index({ userId: 1, period: 1 });
 // Virtual for budget status (active/expired)
 budgetSchema.virtual('status').get(function() {
   const now = new Date();
-  return now >= this.startDate && now <= this.endDate ? 'active' : 'expired';
+  return now > this.endDate ? 'expired' : 'active';
 });
 
-export default mongoose.model('Budget', budgetSchema);
+const Budget = mongoose.model('Budget', budgetSchema);
+module.exports = Budget;

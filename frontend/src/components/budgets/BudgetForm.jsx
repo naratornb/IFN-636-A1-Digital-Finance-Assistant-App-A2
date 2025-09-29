@@ -17,7 +17,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     period: 'monthly',
     totalBudget: '',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
     notes: ''
   });
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     setFormData({
       period: 'monthly',
       totalBudget: '',
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
       notes: ''
     });
     setError('');
@@ -39,17 +39,22 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       const fetchBudget = async () => {
         try {
           const response = await BudgetService.getBudgetById(user.token, budgetId);
-          const budget = response.data;
+          const budget = response.data || response;
+
+          // Format the date properly - ensure we're using the actual startDate from the budget
+          const startDateStr = budget.startDate
+            ? new Date(budget.startDate).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0];
+
           setFormData({
-            period: budget.period,
-            totalBudget: budget.totalBudget,
-            startDate: budget.startDate
-              ? new Date(budget.startDate).toISOString().split('T')[0]
-              : new Date().toISOString().split('T')[0],
+            period: budget.period || 'monthly',
+            totalBudget: budget.totalBudget || '',
+            startDate: startDateStr,
             notes: budget.notes || ''
           });
         } catch (err) {
           setError('Failed to fetch budget data');
+          console.error('Error fetching budget:', err);
         }
       };
       fetchBudget();
@@ -60,17 +65,20 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
 
     // Clear budget data when component unmounts
     return () => clearBudget();
-  }, [budgetId, getBudget, clearBudget]);
+  }, [budgetId, user?.token, clearBudget]);
 
   // Update form when budget data is loaded
   useEffect(() => {
     if (budget && budgetId) {
+      // Format the date properly from the budget context data
+      const startDateStr = budget.startDate
+        ? new Date(budget.startDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
       setFormData({
         period: budget.period || 'monthly',
         totalBudget: budget.totalBudget || '',
-        startDate: budget.startDate
-          ? new Date(budget.startDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
+        startDate: startDateStr,
         notes: budget.notes || ''
       });
     }

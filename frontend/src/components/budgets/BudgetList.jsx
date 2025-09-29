@@ -1,8 +1,8 @@
 import { FiEdit2, FiTrash2, FiCalendar } from 'react-icons/fi';
 
 const BudgetList = ({ 
-  budgets, 
-  setEditingBudget, 
+  budgets = [],
+  setEditingBudget,
   loading, 
   error, 
   handleDelete
@@ -13,27 +13,6 @@ const BudgetList = ({
     if (!dateString) return '';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
-  // Helper function to calculate end date based on period
-  const calculateEndDate = (startDate, period) => {
-    if (!startDate) return null;
-    
-    const start = new Date(startDate);
-    const end = new Date(start);
-    
-    if (period === 'weekly') {
-      end.setDate(start.getDate() + 6);
-    } else if (period === 'monthly') {
-      end.setMonth(start.getMonth() + 1);
-      end.setDate(start.getDate() - 1);
-      
-      if (end.getMonth() !== (start.getMonth() + 1) % 12) {
-        end.setDate(0);
-      }
-    }
-    
-    return end;
   };
 
   return (
@@ -102,7 +81,7 @@ const BudgetList = ({
                 <div className="text-left break-words whitespace-normal max-w-[200px]">
                   <div className="flex items-center">
                     <FiCalendar className="inline-block w-4 h-4 mr-2" />
-                    {formatDateForDisplay(budget.startDate)} - {formatDateForDisplay(calculateEndDate(budget.startDate, budget.period))}
+                    {formatDateForDisplay(budget.startDate)} - {formatDateForDisplay(budget.endDate)}
                   </div>
                 </div>
 
@@ -140,4 +119,3 @@ const BudgetList = ({
 };
 
 export default BudgetList;
-

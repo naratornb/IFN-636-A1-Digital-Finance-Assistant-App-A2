@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const expenseSchema = new mongoose.Schema({
   userId: {
@@ -45,4 +45,5 @@ expenseSchema.index({ userId: 1, date: -1 });
 // Index for category-based queries
 expenseSchema.index({ userId: 1, category: 1 });
 
-export default mongoose.model('Expense', expenseSchema);
+const Expense = mongoose.model('Expense', expenseSchema);
+module.exports = Expense;
