@@ -20,7 +20,7 @@ const Navbar = () => {
           </svg>
         </div>
         <Link
-          to="/dashboard"
+          to="/"
           className="text-white text-2xl font-bold tracking-wider hover:text-[#f5c400] transition-colors duration-200"
         >
           MAXWORTH
@@ -67,7 +67,7 @@ const Navbar = () => {
               onClick={handleLogout}
               className="border-2 border-yellow-400 text-white px-6 py-2 rounded-lg hover:bg-yellow-400 hover:text-gray-900 transition-colors duration-300"
             >
-              Logout
+              Log Out
             </button>
           </>
         ) : (
@@ -76,7 +76,7 @@ const Navbar = () => {
               to="/login" 
               className="text-[#cfcfcf] text-sm font-medium uppercase tracking-[0.35em] hover:text-white transition-colors duration-200"
             >
-              Login
+              Log In
             </Link>
             <Link
               to="/register"

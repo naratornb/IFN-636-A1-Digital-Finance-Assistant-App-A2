@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { FiDollarSign, FiTrendingUp, FiPieChart, FiArrowUp, FiArrowDown, FiCalendar, FiDownload } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiPieChart, FiArrowUp, FiArrowDown, FiCalendar, FiDownload, FiList, FiTrash2, FiX, FiClock } from 'react-icons/fi';
 
 const Reports = () => {
   const { user } = useAuth();
@@ -10,6 +10,11 @@ const Reports = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [showDownloadLogs, setShowDownloadLogs] = useState(false);
+  const [downloadLogs, setDownloadLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [clearingLogs, setClearingLogs] = useState(false);
+  const [logError, setLogError] = useState('');
   const [dashboardData, setDashboardData] = useState({
     totalExpenses: 0,
     totalBudget: 0,
@@ -119,6 +124,52 @@ const Reports = () => {
     }
   };
 
+  const fetchDownloadLogs = async () => {
+    try {
+      setLogsLoading(true);
+      setLogError('');
+
+      const response = await axiosInstance.get('/api/reports/download-logs', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+
+      setDownloadLogs(response.data.data.logs || []);
+    } catch (err) {
+      console.error('Error fetching download logs:', err);
+      setLogError('Failed to fetch download history');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const handleShowLogs = () => {
+    setShowDownloadLogs(true);
+    fetchDownloadLogs();
+  };
+
+  const handleClearLogs = async () => {
+    try {
+      setClearingLogs(true);
+      setLogError('');
+
+      await axiosInstance.delete('/api/reports/download-logs', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+
+      // Clear logs in state
+      setDownloadLogs([]);
+    } catch (err) {
+      console.error('Error clearing download logs:', err);
+      setLogError('Failed to clear download history');
+    } finally {
+      setClearingLogs(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#4d4d4d] flex justify-center items-center">
@@ -147,11 +198,22 @@ const Reports = () => {
 
         {/* Date Range Selector */}
         <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)] mb-10">
-          <div className="flex items-center mb-4">
-            <div className="p-3 bg-[#4d4d4d] rounded-full mr-4">
-              <FiCalendar className="text-[#f5c400] text-xl" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="p-3 bg-[#4d4d4d] rounded-full mr-4">
+                <FiCalendar className="text-[#f5c400] text-xl" />
+              </div>
+              <h2 className="text-lg font-semibold uppercase tracking-[0.15em]">Select Date Range</h2>
             </div>
-            <h2 className="text-lg font-semibold uppercase tracking-[0.15em]">Select Date Range</h2>
+
+            {/* Download History Button */}
+            <button
+              onClick={handleShowLogs}
+              className="px-4 py-2 bg-[#4d4d4d] text-white font-medium rounded hover:bg-[#3d3d3d] transition-colors flex items-center gap-2"
+            >
+              <FiList className="text-lg" />
+              Download History
+            </button>
           </div>
 
           <form onSubmit={handleDateRangeSubmit} className="flex flex-col md:flex-row gap-4 items-end">
@@ -391,6 +453,82 @@ const Reports = () => {
             </div>
           </div>
         </div>
+
+        {/* Download History Modal */}
+        {showDownloadLogs && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-[#707070]">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <FiClock className="text-[#f5c400]" />
+                  Report Download History
+                </h2>
+                <button
+                  onClick={() => setShowDownloadLogs(false)}
+                  className="p-2 hover:bg-[#4d4d4d] rounded-full transition-colors"
+                >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 overflow-y-auto flex-grow">
+                {logsLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#f5c400]"></div>
+                  </div>
+                ) : logError ? (
+                  <div className="text-red-400 text-center py-4">{logError}</div>
+                ) : downloadLogs.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">No download history found</div>
+                ) : (
+                  <div className="space-y-1">
+                    {downloadLogs.map((log, index) => (
+                      <div
+                        key={index}
+                        className="bg-[#4d4d4d] p-3 rounded flex flex-col sm:flex-row sm:justify-between gap-2 border border-[#707070]"
+                      >
+                        <div>
+                          <div className="font-medium">{log.fileName || "Financial Report"}</div>
+                          <div className="text-sm text-[#cfcfcf]">
+                            {log.dateRange?.startDate && log.dateRange?.endDate ? (
+                              `Report period: ${new Date(log.dateRange.startDate).toLocaleDateString()} - ${new Date(log.dateRange.endDate).toLocaleDateString()}`
+                            ) : "No date range"}
+                          </div>
+                        </div>
+                        <div className="text-xs text-[#cfcfcf] whitespace-nowrap">
+                          Downloaded on {formatDate(log.downloadTime)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-[#707070] flex justify-between items-center">
+                <div className="text-sm text-[#cfcfcf]">
+                  {downloadLogs.length} {downloadLogs.length === 1 ? 'record' : 'records'} found
+                </div>
+                <button
+                  onClick={handleClearLogs}
+                  disabled={clearingLogs || downloadLogs.length === 0}
+                  className={`px-4 py-2 bg-red-800 text-white rounded flex items-center gap-2 hover:bg-red-700 transition-colors ${
+                    clearingLogs || downloadLogs.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {clearingLogs ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  ) : (
+                    <FiTrash2 />
+                  )}
+                  {clearingLogs ? 'Clearing...' : 'Clear History'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

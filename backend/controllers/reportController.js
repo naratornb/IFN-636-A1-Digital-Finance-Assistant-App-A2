@@ -2,6 +2,7 @@ const BaseController = require('./baseController');
 const Budget = require('../models/Budget');
 const Expense = require('../models/Expense');
 const reportService = require('../services/reportService');
+const { ReportDownload } = require('../models/Report');
 
 class ReportController extends BaseController {
   constructor() {
@@ -254,6 +255,69 @@ class ReportController extends BaseController {
   }
 
   /**
+   * Get report download logs for the current user
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   * @returns {Promise<void>}
+   */
+  async getDownloadLogs(req, res) {
+    try {
+      const userId = req.user._id;
+
+      // Parse pagination parameters
+      const limit = parseInt(req.query.limit) || 10;
+      const page = parseInt(req.query.page) || 1;
+      const skip = (page - 1) * limit;
+      const sortBy = req.query.sortBy || 'downloadTime';
+      const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+      // Get report download logs
+      const logs = await reportService.getReportDownloadLogs(userId, {
+        limit,
+        skip,
+        sortBy,
+        sortOrder
+      });
+
+      // Get total count for pagination
+      const total = await ReportDownload.countDocuments({ userId });
+
+      return this.sendSuccess(res, {
+        logs,
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.ceil(total / limit)
+        }
+      }, 'Report download logs retrieved successfully');
+    } catch (error) {
+      console.error('Error retrieving report download logs:', error);
+      return this.sendError(res, error.message);
+    }
+  }
+
+  /**
+   * Clear all report download logs for the current user
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   * @returns {Promise<void>}
+   */
+  async clearDownloadLogs(req, res) {
+    try {
+      const userId = req.user._id;
+
+      // Clear report download logs
+      const result = await reportService.clearReportDownloadLogs(userId);
+
+      return this.sendSuccess(res, result, `Successfully cleared ${result.deleted} download logs`);
+    } catch (error) {
+      console.error('Error clearing report download logs:', error);
+      return this.sendError(res, error.message);
+    }
+  }
+
+  /**
    * Generate and download a PDF report
    * @param {Object} req - Request object
    * @param {Object} res - Response object
@@ -372,6 +436,13 @@ class ReportController extends BaseController {
         startDate,
         endDate,
         userId
+      );
+
+      // Log the report download
+      await reportService.addReportDownloadLog(
+        userId,
+        { startDate: startDateObj, endDate: endDateObj },
+        filename
       );
 
       // Send the file as a download

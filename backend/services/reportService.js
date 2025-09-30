@@ -1,8 +1,73 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs-extra');
 const path = require('path');
+const { ReportDownload } = require('../models/Report');
 
 class ReportService {
+  /**
+   * Logs a report download
+   * @param {string} userId - ID of the user downloading the report
+   * @param {Object} dateRange - Date range of the report
+   * @param {string} fileName - Name of the downloaded file
+   * @returns {Promise<Object>} - The created log entry
+   */
+  async addReportDownloadLog(userId, dateRange, fileName) {
+    try {
+      const downloadLog = new ReportDownload({
+        userId,
+        dateRange,
+        fileName,
+        downloadTime: new Date()
+      });
+
+      const savedLog = await downloadLog.save();
+      return savedLog;
+    } catch (error) {
+      console.error('Error logging report download:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all report download logs for a user
+   * @param {string} userId - ID of the user
+   * @param {Object} options - Pagination options
+   * @returns {Promise<Array>} - Array of download logs
+   */
+  async getReportDownloadLogs(userId, options = {}) {
+    try {
+      const { limit = 10, skip = 0, sortBy = 'downloadTime', sortOrder = -1 } = options;
+
+      const sort = {};
+      sort[sortBy] = sortOrder;
+
+      const logs = await ReportDownload.find({ userId })
+        .sort(sort)
+        .limit(limit)
+        .skip(skip);
+
+      return logs;
+    } catch (error) {
+      console.error('Error getting report download logs:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear all report download logs for a user
+   * @param {string} userId - ID of the user
+   * @returns {Promise<Object>} - Result of deletion
+   */
+  async clearReportDownloadLogs(userId) {
+    try {
+      const result = await ReportDownload.deleteMany({ userId });
+      return { deleted: result.deletedCount };
+    } catch (error) {
+      console.error('Error clearing report download logs:', error);
+      throw error;
+    }
+  }
+
   /**
    * Generates a PDF report based on provided data
    * @param {Object} reportData - Data to be included in the report

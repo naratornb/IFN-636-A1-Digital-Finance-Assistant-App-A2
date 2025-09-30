@@ -42,9 +42,9 @@ const BudgetList = ({
           <p className="text-[#cfcfcf] mb-4">Create your first budget to start tracking your finances.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto w-full">
+  <div className="w-full overflow-x-auto">
           {/* Header row - hidden on mobile, visible on medium screens and above */}
-          <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[minmax(140px,1fr)_minmax(100px,1fr)_minmax(200px,1fr)_minmax(150px,1fr)_0.6fr] md:gap-6 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
+          <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_90px_160px_120px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
             <span className="text-left">Period</span>
             <span className="text-left">Budget</span>
             <span className="text-left">Date Range</span>
@@ -57,7 +57,7 @@ const BudgetList = ({
             {budgets.map((budget) => (
               <div
                 key={budget._id}
-                className="grid items-center gap-4 text-xs text-[#f5f5f5] md:grid-cols-[minmax(140px,1fr)_minmax(100px,1fr)_minmax(200px,1fr)_minmax(150px,1fr)_0.6fr] w-full"
+                className="grid items-center gap-3 text-xs text-[#f5f5f5] md:grid-cols-[180px_90px_160px_120px_50px] w-full"
               >
                 {/* Period column with status badge */}
                 <div className="text-left font-medium uppercase tracking-[0.2em] break-words whitespace-normal">

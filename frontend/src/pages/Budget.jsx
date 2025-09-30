@@ -63,20 +63,17 @@ const Budgets = () => {
 
   return (
     <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
-      <div className="flex-1 px-6 py-10 lg:px-16">
-        <div className="mx-auto w-full max-w-20xl">
-          <div className="flex flex-nowrap gap-5">
-            {/* Budget Form - Fixed 45% width */}
-            <div className="w-full lg:w-[45%] shrink-0">
+  <div className="flex-1 px-6 py-10 lg:px-16">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="flex flex-col lg:flex-row flex-wrap gap-5 items-start">
+            <div className="flex-1 min-w-[300px] max-w-[500px]">
               <BudgetForm
                 budgetId={editingBudget?._id}
                 onSave={handleSave}
                 onCancel={handleCancel}
               />
             </div>
-
-            {/* Budget List - Flexible 55% width */}
-            <div className="w-full lg:w-[55%] min-h-[600px] overflow-x-auto">
+            <div className="flex-1 min-w-[300px]">
               <BudgetList
                 budgets={budgets}
                 setBudgets={setBudgets}

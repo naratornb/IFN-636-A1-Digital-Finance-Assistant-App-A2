@@ -1,14 +1,18 @@
 const express = require('express');
-const { getGoals, addGoal, updateGoal, deleteGoal } = require('../controllers/goalController');
+const { getGoals, getGoalById, addGoal, updateGoal, deleteGoal } = require('../controllers/goalController');
 const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
+// All routes require authentication
+router.use(protect);
+
 router.route('/')
-  .get(protect, getGoals)
-  .post(protect, addGoal);
+  .get(getGoals)
+  .post(addGoal);
 
 router.route('/:id')
-  .put(protect, updateGoal)
-  .delete(protect, deleteGoal);
+  .get(getGoalById)
+  .put(updateGoal)
+  .delete(deleteGoal);
 
 module.exports = router;
