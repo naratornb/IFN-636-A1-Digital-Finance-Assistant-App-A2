@@ -1,52 +1,73 @@
-const Goal = require('../models/Goal');
+import BaseController from './baseController.js';
+import goalService from '../services/goalService.js'; // Import the instance directly
 
-const getGoals = async (req, res) => {
-  try {
-    const goals = await Goal.find({ userId: req.user.id });
-    res.json(goals);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+// OOP Principle: Inheritance - GoalController extends BaseController
+class GoalController extends BaseController {
+  constructor() {
+    super(null);
+    this.goalService = goalService;
   }
-};
 
-const addGoal = async (req, res) => {
-  const { name, amount, deadline } = req.body;
-  try {
-    const goal = await Goal.create({ userId: req.user.id, name, amount, deadline });
-    res.status(201).json(goal);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  async validateRequest(req) {
+    if (req.method === 'POST' || req.method === 'PUT') {
+      if (!req.body.name || !req.body.target) {
+        throw new Error('Name and target are required');
+      }
+    }
   }
-};
 
-const updateGoal = async (req, res) => {
-  const { name, amount, deadline } = req.body;
-  try {
-    const goal = await Goal.findById(req.params.id);
-    if (!goal) return res.status(404).json({ message: 'Goal not found' });
+  async processRequest(req) {
+    const userId = req.user.id;
+    const id = req.params.id;
 
-    goal.name = name || goal.name;
-    goal.amount = amount || goal.amount;
-    goal.deadline = deadline || goal.deadline;
-
-    const updatedGoal = await goal.save();
-    res.json(updatedGoal);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    switch (req.method) {
+      case 'POST':
+        return this.goalService.createGoal({ ...req.body, userId });
+      case 'GET':
+        if (id) {
+          return this.goalService.getGoalById(id, userId);
+        } else {
+          return this.goalService.getGoalsByUser(userId);
+        }
+      case 'PUT':
+        if (!req.params.id) {
+          throw new Error('Goal ID is required for update operations');
+        }
+        return this.goalService.updateGoal(req.params.id, req.body, userId);
+      case 'DELETE':
+        if (!req.params.id) {
+          throw new Error('Goal ID is required for delete operations');
+        }
+        return this.goalService.deleteGoal(req.params.id, userId);
+      default:
+        throw new Error(`Method ${req.method} not supported`);
+    }
   }
-};
 
-const deleteGoal = async (req, res) => {
-  try {
-    const goal = await Goal.findById(req.params.id);
-    if (!goal) return res.status(404).json({ message: 'Goal not found' });
-
-    await goal.remove();
-    res.json({ message: 'Goal deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  async getGoals(req, res) {
+    await this.handleRequest(req, res);
   }
-};
 
-module.exports = { getGoals, addGoal, updateGoal, deleteGoal };
+  async getGoalById(req, res) {
+    await this.handleRequest(req, res);
+  }
 
+  async addGoal(req, res) {
+    await this.handleRequest(req, res);
+  }
+
+  async updateGoal(req, res) {
+    await this.handleRequest(req, res);
+  }
+
+  async deleteGoal(req, res) {
+    await this.handleRequest(req, res);
+  }
+}
+
+const controller = new GoalController();
+export const getGoals = controller.getGoals.bind(controller);
+export const getGoalById = controller.getGoalById.bind(controller);
+export const addGoal = controller.addGoal.bind(controller);
+export const updateGoal = controller.updateGoal.bind(controller);
+export const deleteGoal = controller.deleteGoal.bind(controller);

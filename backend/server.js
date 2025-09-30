@@ -1,28 +1,37 @@
-
-const express = require('express');
 const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
-
+const app = require("./app");
+const logger = require("./config/logger");
+const connectDB = require("./config/db");
 dotenv.config();
 
-const app = express();
+const PORT = process.env.PORT || 5001;
+const MONGODB_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/personal_finance';
+const swaggerDocs = require("./config/swagger");
 
-app.use(cors());
-app.use(express.json());
+const startServer = async () => {
+  try {
+    // Using Singleton Pattern for database connection
+    await connectDB(MONGODB_URI);
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/reports', require('./routes/reportRoutes'));
-app.use('/api/budgets', require('./routes/budgetRoutes'));
-app.use('/api/goals', require('./routes/goalRoutes'));
-app.use('/api/expenses', require('./routes/expenseRoutes'));
+    // swagger
+    swaggerDocs(app, PORT);
 
+    // Start the server
+    app.listen(PORT, () => {
+      logger.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    logger.log(`Failed to start server: ${error}`);
+    // Ensure the process exits with a non-zero code to indicate failure
+    process.exit(1);
+  }
+};
 
-if (require.main === module) {
-  connectDB();
-  const PORT = process.env.PORT || 5001;
-  app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  logger.log(`Unhandled Rejection: ${err}`);
+  // Close server & exit process
+  process.exit(1);
+});
 
-}
-
-module.exports = app;
+startServer();

@@ -3,7 +3,7 @@ name: Backend CI
 on:
   push:
     branches:
-      - main  # Trigger CI on pushes to the main branch
+      - dev  # Trigger CI on pushes to the main branch
 
 
 jobs:
@@ -13,68 +13,140 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22] # Test on multiple Node.js versions
+        node-version: [ 22 ] # Test on multiple Node.js versions
 
 
-    environment: MONGO_URI
+    environment: PROD
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      # Initial disk space cleanup and monitoring
+      - name: Cleanup disk space
+        run: |
+          echo "====== DISK SPACE BEFORE CLEANUP ======"
+          df -h
+          
+          # Clean temp files and directories
+          echo "Cleaning temporary files..."
+          sudo find /tmp -type f -atime +1 -delete || echo "Could not clean temp files"
+          
+          # Clean npm and yarn caches
+          echo "Cleaning npm and yarn caches..."
+          npm cache clean --force || echo "No npm cache to clean"
+          yarn cache clean || echo "No yarn cache to clean"
+          
+          # Clean up old node_modules directories from previous builds
+          echo "Cleaning old node_modules directories..."
+          find /home/runner/work -name "node_modules" -type d -mtime +1 -exec rm -rf {} \; 2>/dev/null || echo "No old node_modules to clean"
+          
+          # Clean old build directories
+          echo "Cleaning old build directories..."
+          find /home/runner/work -path "*/build" -type d -mtime +1 -exec rm -rf {} \; 2>/dev/null || echo "No old build directories to clean"
+          
+          echo "====== DISK SPACE AFTER CLEANUP ======"
+          df -h
 
-    # Set up Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Shallow clone to save disk space
 
-    - name: Print Env Secret
+      # Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
-      run: | 
-        echo "Secret 1 is: $MONGO_URI"
-        echo "Secret 2 is: $JWT_SECRET"
-        echo "Secret 3 is: $PORT"
-      
-    - run: pm2 stop all
+      - name: Print Env Secret
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
+          ENV_NAME: ${{ secrets.ENV_NAME }}
+        run: |
+          echo "Secret 1 is: $MONGO_URI"
+          echo "Secret 2 is: $JWT_SECRET"
+          echo "Secret 3 is: $PORT"
+          echo "Secret 4 is: $ENV_NAME"
 
-    # Install dependencies for backend
-    - name: Install Backend Dependencies
-      working-directory: ./backend
-      run: | 
-       npm install --global yarn
-       yarn --version
-       yarn install
-      
-    # Install dependencies for frontend
-    - name: Install Frontend Dependencies
-      working-directory: ./frontend
-      run: |
-        df -h
-        sudo rm -rf ./build
-        yarn install
-        yarn run build
+      # Fail-safe pm2 stop all
+      - name: Stop PM2 processes if any
+        run: pm2 list | grep -q '[online]' && pm2 stop all || echo "No PM2 processes to stop"
 
+      # Clean previous build artifacts to ensure fresh installation
+      - name: Clean previous build artifacts
+        run: |
+          rm -rf ./backend/node_modules ./frontend/node_modules
+          rm -rf ./backend/package-lock.json ./frontend/package-lock.json
+          rm -rf ./backend/yarn.lock ./frontend/yarn.lock
 
-    # Run backend tests
-    - name: Run Backend Tests
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
-      working-directory: ./backend
-      run: npm test
+      # Install dependencies for backend with proper approach to fix iconv-lite issue
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
+          echo "Installing global yarn..."
+          npm install --global yarn
+          yarn --version
+          echo "Reinstalling backend dependencies from scratch..."
+          # Complete removal of node_modules to ensure clean install
+          rm -rf node_modules
+          # First install iconv-lite explicitly to ensure it's properly installed
+          yarn add iconv-lite
+          # Then install all dependencies
+          yarn install --frozen-lockfile
 
+      # Create frontend .env file dynamically from GitHub secrets
+      - name: Create Frontend Environment File
+        run: |
+          echo "REACT_APP_ENV_NAME=${{ secrets.ENV_NAME }}" > ./frontend/.env
+          echo "REACT_APP_API_URL=${{ secrets.API_URL || 'http://54.66.213.198:5001' }}" >> ./frontend/.env
+          echo "Created frontend .env with environment: ${{ secrets.ENV_NAME }}"
 
-    - run: npm ci
-    - run: | 
-        cd ./backend
-        touch .env
-        echo "${{ secrets.PROD }}" > .env
+      # Install dependencies for frontend and build with CI=false to ignore warnings
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: |
+          echo "==== Disk space before frontend build ===="
+          df -h
+          rm -rf ./build
+          # Remove package-lock.json to avoid conflicts
+          rm -f package-lock.json
+          # Clean install of dependencies
+          yarn install --frozen-lockfile
+          # Set CI=false to prevent treating warnings as errors
+          CI=false yarn run build
+          # Remove node_modules after build to save space
+          rm -rf node_modules
+          echo "==== Disk space after frontend build ===="
+          df -h
 
-    - run: pm2 start all
+      # Run backend tests
+      - name: Run Backend Tests
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
+        working-directory: ./backend
+        run: npm test
 
-    - run: pm2 restart all
+      - name: Setup backend environment
+        run: |
+          cd ./backend
+          touch .env
+          echo "${{ vars.PROD }}" > .env
+
+      # Combine PM2 steps to be more efficient
+      - name: Start/Restart PM2 processes
+        run: |
+          cd ./backend
+          pm2 start all || echo "No PM2 processes to start"
+          pm2 restart all || echo "No PM2 processes to restart"
+
+      # Final cleanup step
+      - name: Final cleanup
+        if: always()  # Run even if previous steps fail
+        run: |
+          echo "====== PERFORMING FINAL CLEANUP ======"
+          # Clean any remaining build artifacts
+          rm -rf ./frontend/node_modules || echo "No frontend node_modules to clean"
+          # Final disk space check
+          df -h

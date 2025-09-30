@@ -1,41 +1,34 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../axiosConfig';
-import ExpenseForm from '../components/ExpenseForm';
-import ExpenseList from '../components/ExpenseList';
-import { useAuth } from '../context/AuthContext';
+// src/pages/Expenses.js
+import React, { useState } from 'react';
+import ExpenseList from '../components/expenses/ExpenseList.jsx';
+import ExpenseForm from '../components/expenses/ExpenseForm.jsx';
+import { useExpenseContext } from '../context/ExpenseContext';
 
 const Expenses = () => {
-  const { user } = useAuth();
-  const [expenses, setExpenses] = useState([]);
+  const { expenses } = useExpenseContext();
   const [editingExpense, setEditingExpense] = useState(null);
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const response = await axiosInstance.get('/api/expenses', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setExpenses(response.data);
-      } catch (error) {
-        alert('Failed to fetch expenses.');
-      }
-    };
-
-    fetchExpenses();
-  }, [user]);
-
   return (
-    <div className="container mx-auto p-6">
-      <ExpenseForm
-        expenses={expenses}
-        setExpenses={setExpenses}
-        editingExpense={editingExpense}
-        setEditingExpense={setEditingExpense}
-      />
-      <ExpenseList expenses={expenses} setExpenses={setExpenses} setEditingExpense={setEditingExpense} />
+    <div className="min-h-screen bg-[#4d4d4d] text-white flex flex-col">
+      <div className="flex-1 px-6 py-10 lg:px-16">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="flex flex-col lg:flex-row flex-wrap gap-5 items-start">
+            <div className="flex-1 min-w-[300px] max-w-[500px]">
+              <ExpenseForm
+                editingExpense={editingExpense}
+                setEditingExpense={setEditingExpense}
+              />
+            </div>
+            <div className="flex-1 min-w-[300px]">
+              <ExpenseList
+                setEditingExpense={setEditingExpense}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Expenses;
-

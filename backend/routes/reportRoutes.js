@@ -1,10 +1,21 @@
-
 const express = require('express');
-const { getReports, addReport, updateReport, deleteReport } = require('../controllers/reportController');
-const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
+const reportController = require('../controllers/reportController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.route('/').get(protect, getReports).post(protect, addReport);
-router.route('/:id').put(protect, updateReport).delete(protect, deleteReport);
+// All routes require authentication
+router.use(protect);
+
+// GET dashboard data
+router.get('/', reportController.getDashboardData.bind(reportController));
+
+// Generate and download PDF report with automatic download logging
+router.get('/pdf', reportController.generatePdf.bind(reportController));
+
+// Get report download logs for the current user
+router.get('/download-logs', reportController.getDownloadLogs.bind(reportController));
+
+// Clear all report download logs for the current user
+router.delete('/download-logs', reportController.clearDownloadLogs.bind(reportController));
 
 module.exports = router;
