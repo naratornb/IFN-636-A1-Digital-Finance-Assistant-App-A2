@@ -1,4 +1,4 @@
-import { FiEdit2, FiTrash2, FiCalendar } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiCalendar, FiClock } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import axiosInstance from '../../axiosConfig';
 
@@ -23,6 +23,13 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Helper function to get status badge style
+  const getStatusBadgeClass = (status) => {
+    return status === 'active'
+      ? 'bg-green-800 text-green-100'
+      : 'bg-red-800 text-red-100';
+  };
+
   return (
     <section className="bg-[#3f3f3f] border border-[#5c5c5c] px-8 py-10 shadow-[0_18px_36px_rgba(0,0,0,0.35)] w-full">
       <h2 className="mb-8 text-lg font-semibold uppercase tracking-[0.4em] text-[#f0f0f0]">
@@ -41,10 +48,11 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
       ) : (
         <div className="w-full overflow-x-auto">
           {/* Header row - hidden on mobile, visible on medium screens and above */}
-          <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_160px_160px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
+          <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_160px_120px_80px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
             <span className="text-left">Name</span>
             <span className="text-left">Current / Goal</span>
             <span className="text-left">Deadline</span>
+            <span className="text-left">Status</span>
             <span className="text-left">Action</span>
           </div>
           {/* Goal items */}
@@ -52,7 +60,7 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
             {goals.map((goal) => (
               <div
                 key={goal._id}
-                className="grid items-center gap-3 text-xs text-[#f5f5f5] md:grid-cols-[180px_160px_160px_50px] w-full"
+                className="grid items-center gap-3 text-xs text-[#f5f5f5] md:grid-cols-[180px_160px_120px_80px_50px] w-full"
               >
                 {/* Name column */}
                 <div className="text-left font-medium uppercase tracking-[0.2em] break-words whitespace-normal">
@@ -67,11 +75,21 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
                   <span>{parseFloat(goal.target || 0).toFixed(2)}</span>
                 </div>
                 {/* Deadline column */}
-                <div className="text-left break-words whitespace-normal max-w-[200px]">
+                <div className="text-left break-words whitespace-normal max-w-[120px]">
                   <div className="flex items-center">
                     <FiCalendar className="inline-block w-4 h-4 mr-2" />
                     {formatDateForDisplay(goal.deadline)}
                   </div>
+                  <div className="flex items-center text-[#a0a0a0] mt-1">
+                    <FiClock className="inline-block w-3 h-3 mr-1" />
+                    <span className="text-xs">{goal.daysRemaining} days left</span>
+                  </div>
+                </div>
+                {/* Status column */}
+                <div className="text-left break-words whitespace-normal">
+                  <span className={`px-2 py-1 rounded text-xs uppercase font-semibold ${getStatusBadgeClass(goal.status)}`}>
+                    {goal.status}
+                  </span>
                 </div>
                 {/* Actions column */}
                 <div className="flex items-center gap-0 text-left">
@@ -102,4 +120,3 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
 };
 
 export default GoalList;
-

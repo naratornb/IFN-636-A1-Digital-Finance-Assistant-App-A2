@@ -27,9 +27,14 @@ const goalSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  amount: {
+  target: {
     type: Number,
     required: true,
+    min: 0
+  },
+  current: {
+    type: Number,
+    default: 0,
     min: 0
   },
   deadline: {
@@ -51,6 +56,12 @@ goalSchema.virtual('daysRemaining').get(function() {
   const now = new Date();
   const diffMs = this.deadline - now;
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+});
+
+// Virtual: status field based on deadline (active or expired)
+goalSchema.virtual('status').get(function() {
+  const now = new Date();
+  return now <= this.deadline ? 'active' : 'expired';
 });
 
 // Static method example: get overdue goals

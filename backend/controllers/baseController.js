@@ -34,8 +34,29 @@ class BaseController {
   }
 
   handleError(res, error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.warn(error);
+
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = {};
+
+      // Extract all validation error messages
+      for (const field in error.errors) {
+        validationErrors[field] = error.errors[field].message;
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: error._message || 'Validation error',
+        errors: validationErrors
+      });
+    }
+
+    // Handle other types of errors
+    res.status(500).json({
+      success: false,
+      message: error.message || 'An unexpected error occurred'
+    });
   }
 
   // Common methods for CRUD operations

@@ -7,11 +7,10 @@ class GoalService {
   }
 
   async getGoalsByUser(userId) {
-    return this.goalRepository.find({ userId });
+    return this.goalRepository.findByUser(userId);
   }
 
   async createGoal(data) {
-    // Add validation/logic if needed
     return this.goalRepository.create(data);
   }
 

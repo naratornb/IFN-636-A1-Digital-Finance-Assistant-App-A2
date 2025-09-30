@@ -11,12 +11,14 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
     current: '',
     description: ''
   });
+  const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState('');
 
   useEffect(() => {
     if (editingGoal) {
       setFormData({
         name: editingGoal.name || '',
-        deadline: editingGoal.deadline || '',
+        deadline: editingGoal.deadline ? new Date(editingGoal.deadline).toISOString().split('T')[0] : '',
         target: editingGoal.target || '',
         current: editingGoal.current || '',
         description: editingGoal.description || ''
@@ -24,32 +26,66 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
     } else {
       setFormData({ name: '', deadline: '', target: '', current: '', description: '' });
     }
+    // Clear errors when form changes
+    setErrors({});
+    setGeneralError('');
   }, [editingGoal]);
 
   const handleChange = (field) => (event) => {
     const { value } = event.target;
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field when user makes changes
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setErrors({});
+    setGeneralError('');
+
     try {
       if (editingGoal) {
         const response = await axiosInstance.put(`/api/goals/${editingGoal._id}`, formData, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         setGoals(goals.map((goal) => (goal._id === response.data._id ? response.data : goal)));
+        setEditingGoal(null);
+        setFormData({ name: '', deadline: '', target: '', current: '', description: '' });
       } else {
         const response = await axiosInstance.post('/api/goals', formData, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         setGoals([...goals, response.data]);
+        setFormData({ name: '', deadline: '', target: '', current: '', description: '' });
       }
-      setEditingGoal(null);
-      setFormData({ name: '', deadline: '', target: '', current: '', description: '' });
     } catch (error) {
-      alert('Failed to save goal.');
+      if (error.response && error.response.data) {
+        const responseData = error.response.data;
+
+        // Handle validation errors
+        if (responseData.errors) {
+          setErrors(responseData.errors);
+        }
+
+        // Handle general error message
+        if (responseData.message) {
+          setGeneralError(responseData.message);
+        } else {
+          setGeneralError('Failed to save goal. Please try again.');
+        }
+      } else {
+        setGeneralError('An unexpected error occurred. Please try again.');
+      }
     }
+  };
+
+  // Helper function to render error message
+  const renderError = (field) => {
+    return errors[field] ? (
+      <p className="text-red-500 text-sm mt-1">{errors[field]}</p>
+    ) : null;
   };
 
   return (
@@ -57,6 +93,13 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
       <h1 className="text-3xl font-light uppercase tracking-[0.6em] mb-10">
         {editingGoal ? 'Edit Goal' : 'Create Goal'}
       </h1>
+
+      {generalError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+          <span className="block sm:inline">{generalError}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-10">
         <div className="grid gap-8 md:grid-cols-2">
           <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
@@ -65,10 +108,11 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
               type="text"
               value={formData.name}
               onChange={handleChange('name')}
-              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
+              className={`bg-transparent border-b ${errors.name ? 'border-red-500' : 'border-[#8c8c8c]'} px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none`}
               placeholder="Goal Name"
               required
             />
+            {renderError('name')}
           </label>
           <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
             Deadline
@@ -76,9 +120,10 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
               type="date"
               value={formData.deadline}
               onChange={handleChange('deadline')}
-              className="bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none"
+              className={`bg-transparent border-b ${errors.deadline ? 'border-red-500' : 'border-[#8c8c8c]'} px-1 py-2 text-base tracking-[0.1em] text-[#f5f5f5] focus:border-[#f5c400] focus:outline-none`}
               required
             />
+            {renderError('deadline')}
           </label>
           <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
             Target
@@ -92,10 +137,11 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
                 step="0.01"
                 value={formData.target}
                 onChange={handleChange('target')}
-                className="pl-7 w-full bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+                className={`pl-7 w-full bg-transparent border-b ${errors.target ? 'border-red-500' : 'border-[#8c8c8c]'} px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none`}
                 placeholder="0.00"
                 required
               />
+              {renderError('target')}
             </div>
           </label>
           <label className="flex flex-col gap-3 text-sm uppercase tracking-[0.35em] text-[#dfdfdf]">
@@ -110,10 +156,10 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
                 step="0.01"
                 value={formData.current}
                 onChange={handleChange('current')}
-                className="pl-7 w-full bg-transparent border-b border-[#8c8c8c] px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+                className={`pl-7 w-full bg-transparent border-b ${errors.current ? 'border-red-500' : 'border-[#8c8c8c]'} px-1 py-2 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none`}
                 placeholder="0.00"
-                required
               />
+              {renderError('current')}
             </div>
           </label>
         </div>
@@ -123,9 +169,10 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
             value={formData.description}
             onChange={handleChange('description')}
             rows={4}
-            className="bg-transparent border border-[#8c8c8c] px-4 py-4 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none"
+            className={`bg-transparent border ${errors.description ? 'border-red-500' : 'border-[#8c8c8c]'} px-4 py-4 text-base tracking-[0.1em] placeholder:text-[#bfbfbf] focus:border-[#f5c400] focus:outline-none`}
             placeholder="Describe this goal"
           />
+          {renderError('description')}
         </label>
         <div className="flex gap-4">
           <button
