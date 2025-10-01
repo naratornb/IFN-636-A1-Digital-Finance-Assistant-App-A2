@@ -58,18 +58,15 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       };
       fetchBudget();
     } else {
-      // Reset form when budgetId is null (creating new budget)
+      
       resetForm();
     }
 
-    // Clear budget data when component unmounts
     return () => clearBudget();
   }, [budgetId, user?.token, clearBudget]);
 
-  // Update form when budget data is loaded
   useEffect(() => {
     if (budget && budgetId) {
-      // Format the date properly from the budget context data
       const startDateStr = budget.startDate
         ? new Date(budget.startDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
