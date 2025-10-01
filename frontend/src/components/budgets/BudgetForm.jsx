@@ -17,7 +17,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     period: 'monthly',
     totalBudget: '',
-    startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
+    startDate: new Date().toISOString().split('T')[0], 
     notes: ''
   });
   const [loading, setLoading] = useState(false);
