@@ -23,7 +23,6 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset form to initial state
   const resetForm = () => {
     setFormData({
       period: 'monthly',
