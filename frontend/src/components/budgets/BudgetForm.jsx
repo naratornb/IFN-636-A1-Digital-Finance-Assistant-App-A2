@@ -80,7 +80,6 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     }
   }, [budget, budgetId]);
 
-  // Update error state from context
   useEffect(() => {
     if (contextError) {
       setError(contextError);
@@ -116,7 +115,6 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       }
 
       if (success) {
-        // State is automatically updated via context
         onSave();
       }
     } catch (err) {
