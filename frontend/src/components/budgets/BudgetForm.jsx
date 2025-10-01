@@ -27,7 +27,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     setFormData({
       period: 'monthly',
       totalBudget: '',
-      startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
+      startDate: new Date().toISOString().split('T')[0], 
       notes: ''
     });
     setError('');
@@ -40,7 +40,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
           const response = await BudgetService.getBudgetById(user.token, budgetId);
           const budget = response.data || response;
 
-          // Format the date properly - ensure we're using the actual startDate from the budget
+          
           const startDateStr = budget.startDate
             ? new Date(budget.startDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0];
