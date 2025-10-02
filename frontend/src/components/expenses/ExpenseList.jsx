@@ -7,7 +7,6 @@ const ExpenseList = ({ setEditingExpense }) => {
   const { user } = useAuth();
   const { expenses, deleteExpense, getExpenses } = useExpenseContext();
 
-  // Fetch expenses when component mounts
   useEffect(() => {
     if (user?.token) {
       getExpenses();
