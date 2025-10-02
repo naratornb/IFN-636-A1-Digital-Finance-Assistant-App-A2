@@ -1,7 +1,6 @@
 import BaseController from './baseController.js';
-import goalService from '../services/goalService.js'; // Import the instance directly
+import goalService from '../services/goalService.js'; 
 
-// OOP Principle: Inheritance - GoalController extends BaseController
 class GoalController extends BaseController {
   constructor() {
     super(null);

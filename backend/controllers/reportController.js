@@ -6,15 +6,14 @@ const { ReportDownload } = require('../models/Report');
 
 class ReportController extends BaseController {
   constructor() {
-    super(null); // No repository needed for this controller
+    super(null); 
   }
 
   /**
-   * Helper method to send success response
-   * @param {Object} res - Response object
-   * @param {Object} data - Data to send
-   * @param {String} message - Success message
-   * @param {Number} statusCode - HTTP status code
+   * @param {Object} res 
+   * @param {Object} data 
+   * @param {String} message 
+   * @param {Number} statusCode 
    */
   sendSuccess(res, data, message = 'Success', statusCode = 200) {
     return res.status(statusCode).json({
@@ -25,10 +24,9 @@ class ReportController extends BaseController {
   }
 
   /**
-   * Helper method to send error response
-   * @param {Object} res - Response object
-   * @param {String} message - Error message
-   * @param {Number} statusCode - HTTP status code
+   * @param {Object} res 
+   * @param {String} message 
+   * @param {Number} statusCode 
    */
   sendError(res, message = 'Server error', statusCode = 500) {
     return res.status(statusCode).json({
@@ -38,7 +36,6 @@ class ReportController extends BaseController {
   }
 
   /**
-   * Get dashboard data with optional date range filtering
    * @param {Object} req - Request object
    * @param {Object} res - Response object
    * @returns {Promise<void>}
