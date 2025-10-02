@@ -6,10 +6,10 @@ const { ReportDownload } = require('../models/Report');
 class ReportService {
   /**
    * Logs a report download
-   * @param {string} userId - ID of the user downloading the report
-   * @param {Object} dateRange - Date range of the report
-   * @param {string} fileName - Name of the downloaded file
-   * @returns {Promise<Object>} - The created log entry
+   * @param {string} userId 
+   * @param {Object} dateRange 
+   * @param {string} fileName 
+   * @returns {Promise<Object>} 
    */
   async addReportDownloadLog(userId, dateRange, fileName) {
     try {
@@ -30,9 +30,9 @@ class ReportService {
 
   /**
    * Get all report download logs for a user
-   * @param {string} userId - ID of the user
-   * @param {Object} options - Pagination options
-   * @returns {Promise<Array>} - Array of download logs
+   * @param {string} userId 
+   * @param {Object} options 
+   * @returns {Promise<Array>} 
    */
   async getReportDownloadLogs(userId, options = {}) {
     try {

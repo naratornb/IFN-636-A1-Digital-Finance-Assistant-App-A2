@@ -10,7 +10,6 @@ describe('GoalService', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox();
 
-    // Create stubs for repository methods
     goalRepositoryStub = {
       create: sandbox.stub(),
       findByUser: sandbox.stub(),
