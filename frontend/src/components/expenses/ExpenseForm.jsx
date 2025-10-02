@@ -69,7 +69,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
         amount: parseFloat(formData.amount)
       };
 
-      // If budgetId is empty, set to null so it won't be sent as empty string
       if (!expenseData.budgetId) {
         expenseData.budgetId = null;
       }
