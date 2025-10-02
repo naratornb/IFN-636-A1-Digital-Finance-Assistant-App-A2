@@ -24,7 +24,6 @@ const ExpenseList = ({ setEditingExpense }) => {
     }
   };
 
-  // Helper function to safely format currency
   const formatCurrency = (amount) => {
     // Check if amount exists and is a number
     if (amount === undefined || amount === null) {
