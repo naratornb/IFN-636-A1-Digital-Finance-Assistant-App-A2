@@ -1,21 +1,27 @@
-import BaseController from './baseController.js';
-import goalService from '../services/goalService.js'; // Import the instance directly
 
-// OOP Principle: Inheritance - GoalController extends BaseController
+import BaseController from './baseController.js';
+import goalService from '../services/goalService.js';
+
+
 class GoalController extends BaseController {
   constructor() {
     super(null);
     this.goalService = goalService;
   }
 
+  
   async validateRequest(req) {
     if (req.method === 'POST' || req.method === 'PUT') {
-      if (!req.body.name || !req.body.target) {
+      if (!req.body.name || req.body.target == null) {
         throw new Error('Name and target are required');
+      }
+      if (req.body.target < 0) {
+        throw new Error('Target cannot be negative');
       }
     }
   }
 
+  
   async processRequest(req) {
     const userId = req.user.id;
     const id = req.params.id;
@@ -24,46 +30,21 @@ class GoalController extends BaseController {
       case 'POST':
         return this.goalService.createGoal({ ...req.body, userId });
       case 'GET':
-        if (id) {
-          return this.goalService.getGoalById(id, userId);
-        } else {
-          return this.goalService.getGoalsByUser(userId);
-        }
+        return id
+          ? this.goalService.getGoalById(id)
+          : this.goalService.getGoalsByUser(userId);
       case 'PUT':
-        if (!req.params.id) {
-          throw new Error('Goal ID is required for update operations');
-        }
-        return this.goalService.updateGoal(req.params.id, req.body, userId);
+        if (!id) throw new Error('Goal ID required for update');
+        return this.goalService.updateGoal(id, req.body);
       case 'DELETE':
-        if (!req.params.id) {
-          throw new Error('Goal ID is required for delete operations');
-        }
-        return this.goalService.deleteGoal(req.params.id, userId);
+        if (!id) throw new Error('Goal ID required for delete');
+        return this.goalService.deleteGoal(id);
       default:
-        throw new Error(`Method ${req.method} not supported`);
+        throw new Error(`Unsupported method ${req.method}`);
     }
   }
-
-  async getGoals(req, res) {
-    await this.handleRequest(req, res);
-  }
-
-  async getGoalById(req, res) {
-    await this.handleRequest(req, res);
-  }
-
-  async addGoal(req, res) {
-    await this.handleRequest(req, res);
-  }
-
-  async updateGoal(req, res) {
-    await this.handleRequest(req, res);
-  }
-
-  async deleteGoal(req, res) {
-    await this.handleRequest(req, res);
-  }
 }
+
 
 const controller = new GoalController();
 export const getGoals = controller.getGoals.bind(controller);

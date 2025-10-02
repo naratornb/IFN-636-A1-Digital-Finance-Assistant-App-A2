@@ -1,21 +1,26 @@
-// services/goalService.js
+
 import GoalRepository from '../repositories/goalRepository.js';
+
 
 class GoalService {
   constructor() {
+    if (GoalService.instance) return GoalService.instance;
     this.goalRepository = new GoalRepository();
+    GoalService.instance = this;
   }
 
+  
   async getGoalsByUser(userId) {
     return this.goalRepository.findByUser(userId);
   }
 
-  async createGoal(data) {
-    return this.goalRepository.create(data);
-  }
-
   async getGoalById(id) {
     return this.goalRepository.findById(id);
+  }
+
+  async createGoal(data) {
+    
+    return this.goalRepository.create(data);
   }
 
   async updateGoal(id, data) {
@@ -26,5 +31,6 @@ class GoalService {
     return this.goalRepository.delete(id);
   }
 }
+
 
 export default new GoalService();
