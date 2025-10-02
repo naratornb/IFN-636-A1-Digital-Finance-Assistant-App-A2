@@ -5,7 +5,6 @@ const { ReportDownload } = require('../models/Report');
 
 class ReportService {
   /**
-   * Logs a report download
    * @param {string} userId 
    * @param {Object} dateRange 
    * @param {string} fileName 
@@ -29,7 +28,6 @@ class ReportService {
   }
 
   /**
-   * Get all report download logs for a user
    * @param {string} userId 
    * @param {Object} options 
    * @returns {Promise<Array>} 
@@ -54,9 +52,8 @@ class ReportService {
   }
 
   /**
-   * Clear all report download logs for a user
-   * @param {string} userId - ID of the user
-   * @returns {Promise<Object>} - Result of deletion
+   * @param {string} userId 
+   * @returns {Promise<Object>} 
    */
   async clearReportDownloadLogs(userId) {
     try {
@@ -69,12 +66,11 @@ class ReportService {
   }
 
   /**
-   * Generates a PDF report based on provided data
-   * @param {Object} reportData - Data to be included in the report
-   * @param {string} startDate - Start date of the report period
-   * @param {string} endDate - End date of the report period
-   * @param {string} userId - User ID for identifying the report
-   * @returns {Promise<string>} - Path to the generated PDF file
+   * @param {Object} reportData
+   * @param {string} startDate 
+   * @param {string} endDate 
+   * @param {string} userId 
+   * @returns {Promise<string>} 
    */
   async generatePdfReport(reportData, startDate, endDate, userId) {
     try {
