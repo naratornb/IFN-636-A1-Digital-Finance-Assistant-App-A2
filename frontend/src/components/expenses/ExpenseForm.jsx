@@ -16,14 +16,12 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
     budgetId: ''
   });
 
-  // Categories from the backend model
   const categories = [
     'Housing', 'Transportation', 'Food', 'Utilities',
     'Healthcare', 'Insurance', 'Debt', 'Entertainment',
     'Personal', 'Savings', 'Other'
   ];
 
-  // Reset form to initial state
   const resetForm = () => {
     setFormData({
       category: 'Other',
@@ -34,7 +32,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
     });
   };
 
-  // Load budgets when component mounts
   useEffect(() => {
     if (user?.token) {
       getBudgets();
@@ -71,7 +68,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
         amount: parseFloat(formData.amount)
       };
 
-      // If budgetId is empty, set to null so it won't be sent as empty string
       if (!expenseData.budgetId) {
         expenseData.budgetId = null;
       }

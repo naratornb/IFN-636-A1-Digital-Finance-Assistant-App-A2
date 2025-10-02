@@ -8,7 +8,6 @@ const BudgetList = ({
   handleDelete
 }) => {
 
-  // Helper function to format date for display
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return '';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
