@@ -59,7 +59,7 @@ const BudgetList = ({
                 key={budget._id}
                 className="grid items-center gap-3 text-xs text-[#f5f5f5] md:grid-cols-[180px_90px_160px_120px_50px] w-full"
               >
-                {/* Period column with status badge */}
+                {/* Period column */}
                 <div className="text-left font-medium uppercase tracking-[0.2em] break-words whitespace-normal">
                   <span>{budget.period.charAt(0).toUpperCase() + budget.period.slice(1)}</span>
                   <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
