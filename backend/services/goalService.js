@@ -1,4 +1,3 @@
-// services/goalService.js
 import GoalRepository from '../repositories/goalRepository.js';
 
 class GoalService {

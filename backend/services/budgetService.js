@@ -10,8 +10,6 @@ import {
   subDays
 } from 'date-fns';
 
-// OOP Principle: Abstraction Single Responsibility - Service handles only budget-related logic
-// abstracts away the complexity of budget creation, including validation, date calculations, and repository operations. Clients of this services only need to provide basic budget data without worrying about implementation details
 class BudgetService {
   constructor() {
     this.budgetRepository = new BudgetRepository(Budget);
