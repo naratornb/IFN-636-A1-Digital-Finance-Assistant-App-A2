@@ -181,47 +181,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Budget Status */}
-          {/* Conditional rendering for goals */}
-          {dashboardData.goals && dashboardData.goals.length > 0 ? (
-            // Pie chart for current/target
-            <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)] flex flex-col items-center">
-              <div className="flex items-center mb-6">
-                <FiPieChart className="text-[#f5c400] mr-2" />
-                <h2 className="text-xl font-semibold uppercase tracking-[0.15em]">Goal Progress</h2>
-              </div>
-              {/* Pie chart for first goal */}
-              {(() => {
-                const goal = dashboardData.goals[0];
-                const current = parseFloat(goal.current || 0);
-                const target = parseFloat(goal.target || 1);
-                const percent = Math.min((current / target) * 100, 100);
-                return (
-                  <div className="relative w-48 h-48 rounded-full mb-6">
-                    <div 
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: `conic-gradient(#f5c400 0% ${percent}%, #707070 ${percent}% 100%)`
-                      }}
-                    ></div>
-                    <div className="absolute inset-8 bg-[#5a5a5a] rounded-full flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold">{percent.toFixed(1)}%</div>
-                        <div className="text-xs text-[#cfcfcf]">Saved</div>
-                        <div className="text-xs text-[#cfcfcf]">${current.toFixed(2)} / ${target.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-              <div className="text-center">
-                <div className="text-lg font-semibold">{dashboardData.goals[0].name}</div>
-                <div className="text-xs text-[#cfcfcf]">Deadline: {dashboardData.goals[0].deadline ? new Date(dashboardData.goals[0].deadline).toLocaleDateString() : 'N/A'}</div>
-                <div className="text-xs text-[#cfcfcf]">Description: {dashboardData.goals[0].description || 'No description'}</div>
-              </div>
-            </div>
-          ) : (
-            // Budget status if no goals
             <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
               <div className="flex items-center mb-6">
                 <FiTrendingUp className="text-[#4ade80] mr-2" />
@@ -268,7 +227,6 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          )}
         </div>
 
         {/* Additional Info */}

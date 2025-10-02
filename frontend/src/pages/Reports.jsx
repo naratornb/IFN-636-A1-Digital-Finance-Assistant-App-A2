@@ -68,7 +68,7 @@ const Reports = () => {
       setError('You must be logged in to view reports');
       setLoading(false);
     }
-  }, [user?.token, startDate, endDate]);
+    }, [user?.token, startDate, endDate]);
 
   // Get the values from dashboardData
   const {
@@ -497,8 +497,8 @@ const Reports = () => {
                             ) : "No date range"}
                           </div>
                         </div>
-                        <div className="text-xs text-[#cfcfcf] whitespace-nowrap">
-                          Downloaded on {formatDate(log.downloadTime)}
+                        <div className="flex items-center sm:items-end sm:justify-end mt-2 sm:mt-0">
+                          <span className="text-xs text-[#cfcfcf]">Downloaded on {formatDate(log.downloadTime)}</span>
                         </div>
                       </div>
                     ))}
