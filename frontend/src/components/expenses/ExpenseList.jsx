@@ -19,7 +19,6 @@ const ExpenseList = ({ setEditingExpense }) => {
 
     try {
       await deleteExpense(expenseId);
-      // No need to manually update state - the context handles it
     } catch (error) {
       alert('Failed to delete expense.');
     }
