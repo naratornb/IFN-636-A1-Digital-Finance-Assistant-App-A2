@@ -1,5 +1,3 @@
-// Builder Pattern: Constructs complex objects step by step
-// Use this pattern to build complex query objects for database operations
 
 class QueryBuilder {
   constructor() {
