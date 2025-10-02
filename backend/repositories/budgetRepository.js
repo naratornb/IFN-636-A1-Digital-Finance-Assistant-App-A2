@@ -4,16 +4,32 @@ import Budget from '../models/Budget.js';
 class BudgetRepository extends BaseRepository {
   constructor() {
     super(Budget);
+    this.observers = [];
   }
 
-  // Additional methods specific to Budget
-  async findByUserAndPeriod(userId, period) {
-    return this.model.findOne({ userId, period });
+  addObserver(observer) {
+    this.observers.push(observer);
   }
 
-  async findByUser(userId) {
+  notify(event, data) {
+    this.observers.forEach(obs => obs.update(event, data));
+  }
+
+  async create(data) {
+    const result = await super.create(data);
+    this.notify('created', result);
+    return result;
+  }
+
+  async update(id, data) {
+    const result = await super.update(id, data);
+    this.notify('updated', result);
+    return result;
+  }
+
+  findByUser(userId) {
     return this.model.find({ userId }).sort({ createdAt: -1 });
   }
 }
 
-export default BudgetRepository;
+export default new BudgetRepository();

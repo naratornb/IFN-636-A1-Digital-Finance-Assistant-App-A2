@@ -1,19 +1,11 @@
 import BaseController from './baseController.js';
 import BudgetService from '../services/budgetService.js';
 
-// OOP Principle: Inheritance - BudgetController extends BaseController
 class BudgetController extends BaseController {
-  constructor() {
-    // We'll handle repository in services
-    super(null);
-    this.budgetService = new BudgetService();
-  }
-
   async validateRequest(req) {
-    if (req.method === 'POST') {
-      if (!req.body.period || !req.body.totalBudget) {
-        throw new Error('Period and total budget are required');
-      }
+    if (['POST', 'PUT'].includes(req.method)) {
+      const { period, totalBudget } = req.body;
+      if (!period || !totalBudget) throw new Error('Period and totalBudget are required');
     }
   }
 
@@ -23,38 +15,24 @@ class BudgetController extends BaseController {
 
     switch (req.method) {
       case 'POST':
-        return this.budgetService.createBudget({ ...req.body, userId });
+        return BudgetService.createBudget({ ...req.body, userId });
       case 'GET':
-          if (id) {
-            // If an id is present in params, return budget by id
-            return this.budgetService.getBudgetById(id, userId);
-          } else {
-            // Otherwise, return all budgets for the user
-            return this.budgetService.getBudgetsByUser(userId);
-          }
+        if (id) return BudgetService.getBudgetById(id);
+        return BudgetService.getBudgetsByUser(userId);
       case 'PUT':
-        // Extract budget ID from request parameters
-        if (!req.params.id) {
-          throw new Error('Budget ID is required for update operations');
-        }
-        return this.budgetService.updateBudget(req.params.id, req.body, userId);
+        if (!id) throw new Error('Budget ID required');
+        return BudgetService.updateBudget(id, req.body);
       case 'DELETE':
-        // Extract budget ID from request parameters
-        if (!req.params.id) {
-          throw new Error('Budget ID is required for delete operations');
-        }
-        return this.budgetService.deleteBudget(req.params.id, userId);
-      default:
-        throw new Error('Method not supported');
+        if (!id) throw new Error('Budget ID required');
+        return BudgetService.deleteBudget(id);
     }
   }
 }
 
-// Using Decorator Pattern to add authentication
-const budgetController = new BudgetController();
-export const createBudget = budgetController.handleRequest;
-export const getBudgets = budgetController.handleRequest;
-export const getBudgetById = budgetController.handleRequest;
-export const updateBudget = budgetController.handleRequest;
-export const deleteBudget = budgetController.handleRequest;
+const controller = new BudgetController();
 
+export const createBudget = controller.handleRequest.bind(controller);
+export const getBudgets = controller.handleRequest.bind(controller);
+export const getBudgetById = controller.handleRequest.bind(controller);
+export const updateBudget = controller.handleRequest.bind(controller);
+export const deleteBudget = controller.handleRequest.bind(controller);

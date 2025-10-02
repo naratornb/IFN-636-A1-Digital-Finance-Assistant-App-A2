@@ -1,64 +1,60 @@
-import Budget from '../models/Budget.js';
 import BudgetRepository from '../repositories/budgetRepository.js';
-import {
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  addDays,
-  addMonths,
-  subDays
-} from 'date-fns';
+import { startOfWeek, startOfMonth, addDays, addMonths, subDays } from 'date-fns';
 
-// OOP Principle: Abstraction Single Responsibility - Service handles only budget-related logic
-// abstracts away the complexity of budget creation, including validation, date calculations, and repository operations. Clients of this services only need to provide basic budget data without worrying about implementation details
+class WeeklyStrategy {
+  calculateDates(startDate) {
+    const start = startOfWeek(startDate, { weekStartsOn: 1 });
+    const end = addDays(new Date(start), 6);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+}
+
+class MonthlyStrategy {
+  calculateDates(startDate) {
+    const start = startOfMonth(startDate);
+    const nextMonth = addMonths(new Date(start), 1);
+    const end = subDays(nextMonth, 1);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+}
+
+class BudgetFactory {
+  static createBudget({ userId, period, totalBudget, notes, startDate, strategy }) {
+    const { start, end } = strategy.calculateDates(startDate);
+    return { userId, period, totalBudget, notes, startDate: start, endDate: end };
+  }
+}
+
+// Singleton BudgetService
 class BudgetService {
   constructor() {
-    this.budgetRepository = new BudgetRepository(Budget);
+
+    if (BudgetService.instance) return BudgetService.instance;
+
+    this.budgetRepository = new BudgetRepository();
+    BudgetService.instance = this;
   }
 
+  async createBudget({ userId, period, totalBudget, notes, startDate }) {
+    const date = startDate ? new Date(startDate) : new Date();
+    const strategy = period === 'weekly' ? new WeeklyStrategy() : new MonthlyStrategy();
 
-  async createBudget(budgetData) {
-    const { userId, period, totalBudget, notes, startDate: userStartDate } = budgetData;
-
-    let startDate, endDate;
-    const dateToUse = userStartDate ? new Date(userStartDate) : new Date();
-
-    if (period === 'weekly') {
-      startDate = userStartDate ? dateToUse : startOfWeek(dateToUse, { weekStartsOn: 1 });
-
-      endDate = addDays(new Date(startDate), 6);
-
-      endDate.setHours(23, 59, 59, 999);
-    } else { // monthly
-      startDate = userStartDate ? dateToUse : startOfMonth(dateToUse);
-
-      const nextMonth = addMonths(new Date(startDate), 1);
-      endDate = subDays(nextMonth, 1);
-
-      endDate.setHours(23, 59, 59, 999);
-    }
-
-    const budget = {
-      userId,
-      period,
-      totalBudget,
-      notes,
-      startDate,
-      endDate
-    };
-    return this.budgetRepository.create(budget);
+    const budgetData = BudgetFactory.createBudget({ userId, period, totalBudget, notes, startDate: date, strategy });
+    return this.budgetRepository.create(budgetData);
   }
 
   async getBudgetsByUser(userId) {
     return this.budgetRepository.findByUser(userId);
   }
 
-  async getBudgetById(id, userId) {
-    return this.budgetRepository.findById(id, userId);
+  async getBudgetById(id) {
+    return this.budgetRepository.findById(id);
   }
-  async updateBudget(id, updateData) {
-    return this.budgetRepository.update(id, updateData);
+
+  async updateBudget(id, data) {
+    return this.budgetRepository.update(id, data);
   }
 
   async deleteBudget(id) {
@@ -66,5 +62,7 @@ class BudgetService {
   }
 }
 
+export default new BudgetService(); 
 
-export default BudgetService;
+
+
