@@ -1,28 +1,12 @@
 const mongoose = require('mongoose');
 
-const ReportDownloadSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  dateRange: {
-    startDate: {
-      type: Date
-    },
-    endDate: {
-      type: Date
-    }
-  },
-  fileName: {
-    type: String,
-  },
-  downloadTime: {
-    type: Date,
-    default: Date.now
-  }
-}, { timestamps: true });
+const reportDownloadSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  dateRange: { type: Object, required: true },
+  fileName: { type: String, required: true },
+  downloadTime: { type: Date, default: Date.now }
+});
 
-const ReportDownload = mongoose.model('ReportDownload', ReportDownloadSchema);
+const ReportDownload = mongoose.model('ReportDownload', reportDownloadSchema);
 
 module.exports = { ReportDownload };
