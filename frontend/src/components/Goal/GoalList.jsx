@@ -16,14 +16,12 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
     }
   };
 
-  // Helper function to format date for display
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return '';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Helper function to get status badge style
   const getStatusBadgeClass = (status) => {
     return status === 'active'
       ? 'bg-green-800 text-green-100'

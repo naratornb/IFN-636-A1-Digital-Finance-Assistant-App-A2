@@ -1,9 +1,7 @@
-// src/context/BudgetContext.js
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import budgetService from '../services/BudgetService';
 import { useAuth } from './AuthContext';
 
-// Initial state
 const initialState = {
   budgets: [],
   budget: null,
@@ -12,10 +10,8 @@ const initialState = {
   success: false
 };
 
-// Create context
 export const BudgetContext = createContext(initialState);
 
-// Reducer
 const budgetReducer = (state, action) => {
   switch (action.type) {
     case 'BUDGET_REQUEST':
@@ -27,7 +23,6 @@ const budgetReducer = (state, action) => {
     case 'GET_BUDGETS':
       return {
         ...state,
-        // Ensure payload is always treated as an array
         budgets: Array.isArray(action.payload) ? action.payload : [],
         isLoading: false
       };
@@ -82,12 +77,10 @@ const budgetReducer = (state, action) => {
   }
 };
 
-// Provider component
 export const BudgetProvider = ({ children }) => {
   const [state, dispatch] = useReducer(budgetReducer, initialState);
   const { user } = useAuth();
 
-  // Get all budgets - memoized with useCallback
   const getBudgets = useCallback(async () => {
     try {
       dispatch({ type: 'BUDGET_REQUEST' });
@@ -96,20 +89,16 @@ export const BudgetProvider = ({ children }) => {
       }
       const response = await budgetService.getBudgets(user.token);
 
-      // Handle different response formats
       let budgetsArray;
       if (Array.isArray(response)) {
-        // If response is already an array
         budgetsArray = response;
       } else if (response && typeof response === 'object') {
-        // If response is an object that might contain budgets array
         budgetsArray = response.budgets || response.data || [];
         if (!Array.isArray(budgetsArray)) {
           console.warn('Unexpected budget data format:', response);
           budgetsArray = [];
         }
       } else {
-        // Fallback to empty array
         console.warn('Unexpected budget response:', response);
         budgetsArray = [];
       }
@@ -124,9 +113,8 @@ export const BudgetProvider = ({ children }) => {
       });
       return [];
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Get single budget
   const getBudget = useCallback(async (id) => {
     try {
       dispatch({ type: 'BUDGET_REQUEST' });
@@ -143,9 +131,8 @@ export const BudgetProvider = ({ children }) => {
       });
       return null;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Create a budget
   const createBudget = useCallback(async (budgetData) => {
     try {
       dispatch({ type: 'BUDGET_REQUEST' });
@@ -162,9 +149,8 @@ export const BudgetProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Update a budget
   const updateBudget = useCallback(async (id, budgetData) => {
     try {
       dispatch({ type: 'BUDGET_REQUEST' });
@@ -181,9 +167,8 @@ export const BudgetProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Delete a budget
   const deleteBudget = useCallback(async (id) => {
     try {
       dispatch({ type: 'BUDGET_REQUEST' });
@@ -200,17 +185,15 @@ export const BudgetProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Reset success state
   const resetSuccess = useCallback(() => {
     dispatch({ type: 'RESET_SUCCESS' });
-  }, []); // No dependencies
+  }, []); 
 
-  // Clear current budget
   const clearBudget = useCallback(() => {
     dispatch({ type: 'CLEAR_BUDGET' });
-  }, []); // No dependencies
+  }, []); 
 
   return (
     <BudgetContext.Provider
@@ -230,7 +213,6 @@ export const BudgetProvider = ({ children }) => {
   );
 };
 
-// Hook to use the budget context
 export const useBudgetContext = () => {
   return useContext(BudgetContext);
 };
