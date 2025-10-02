@@ -39,10 +39,8 @@ const expenseSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying by user and date
 expenseSchema.index({ userId: 1, date: -1 });
 
-// Index for category-based queries
 expenseSchema.index({ userId: 1, category: 1 });
 
 const Expense = mongoose.model('Expense', expenseSchema);
