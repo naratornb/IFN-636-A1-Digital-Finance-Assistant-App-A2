@@ -23,7 +23,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
     'Personal', 'Savings', 'Other'
   ];
 
-  // Reset form to initial state
   const resetForm = () => {
     setFormData({
       category: 'Other',
