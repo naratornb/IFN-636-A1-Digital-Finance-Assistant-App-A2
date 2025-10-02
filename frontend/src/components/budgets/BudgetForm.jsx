@@ -17,18 +17,17 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     period: 'monthly',
     totalBudget: '',
-    startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
+    startDate: new Date().toISOString().split('T')[0], 
     notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset form to initial state
   const resetForm = () => {
     setFormData({
       period: 'monthly',
       totalBudget: '',
-      startDate: new Date().toISOString().split('T')[0],  // Default to today for new budgets
+      startDate: new Date().toISOString().split('T')[0], 
       notes: ''
     });
     setError('');
@@ -41,7 +40,7 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
           const response = await BudgetService.getBudgetById(user.token, budgetId);
           const budget = response.data || response;
 
-          // Format the date properly - ensure we're using the actual startDate from the budget
+          
           const startDateStr = budget.startDate
             ? new Date(budget.startDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0];
@@ -59,18 +58,15 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       };
       fetchBudget();
     } else {
-      // Reset form when budgetId is null (creating new budget)
+      
       resetForm();
     }
 
-    // Clear budget data when component unmounts
     return () => clearBudget();
   }, [budgetId, user?.token, clearBudget]);
 
-  // Update form when budget data is loaded
   useEffect(() => {
     if (budget && budgetId) {
-      // Format the date properly from the budget context data
       const startDateStr = budget.startDate
         ? new Date(budget.startDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
@@ -84,7 +80,6 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
     }
   }, [budget, budgetId]);
 
-  // Update error state from context
   useEffect(() => {
     if (contextError) {
       setError(contextError);
@@ -120,7 +115,6 @@ const BudgetForm = ({ budgetId, onSave, onCancel }) => {
       }
 
       if (success) {
-        // State is automatically updated via context
         onSave();
       }
     } catch (err) {
