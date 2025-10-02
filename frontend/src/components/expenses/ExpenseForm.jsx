@@ -34,7 +34,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
     });
   };
 
-  // Load budgets when component mounts
   useEffect(() => {
     if (user?.token) {
       getBudgets();
