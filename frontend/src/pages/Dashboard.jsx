@@ -24,12 +24,10 @@ const Dashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch dashboard data from backend API
         const response = await axiosInstance.get('/api/reports', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         
-        // Set the dashboard data from the response
         setDashboardData(response.data.data || response.data);
       } catch (err) {
         setError('Failed to fetch dashboard data');
@@ -47,7 +45,6 @@ const Dashboard = () => {
     }
   }, [user?.token]);
 
-  // Get the values from dashboardData
   const {
     totalExpenses,
     totalBudget,
@@ -184,8 +181,8 @@ const Dashboard = () => {
           {/* Budget Status */}
           {/* Conditional rendering for goals */}
           {dashboardData.goals && dashboardData.goals.length > 0 ? (
-            // Pie chart for current/target
-            <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)] flex flex-col items-center">
+
+<div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)] flex flex-col items-center">
               <div className="flex items-center mb-6">
                 <FiPieChart className="text-[#f5c400] mr-2" />
                 <h2 className="text-xl font-semibold uppercase tracking-[0.15em]">Goal Progress</h2>
@@ -221,7 +218,6 @@ const Dashboard = () => {
               </div>
             </div>
           ) : (
-            // Budget status if no goals
             <div className="bg-[#5a5a5a] border border-[#707070] rounded-lg p-6 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
               <div className="flex items-center mb-6">
                 <FiTrendingUp className="text-[#4ade80] mr-2" />
