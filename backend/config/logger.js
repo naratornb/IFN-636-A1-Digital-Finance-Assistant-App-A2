@@ -1,50 +1,56 @@
-// Observer Pattern: Allows multiple objects to observe state changes
+
 
 class Logger {
   constructor() {
-    this.observers = [];
+    this.observers = new Set(); // Using Set to prevent duplicates
   }
 
+  /**
+   * Adds an observer object.
+   * @param {Object} observer - Must implement an update(message) method.
+   */
   addObserver(observer) {
-    this.observers.push(observer);
+    this.observers.add(observer);
   }
 
+  /**
+   * Removes an observer object.
+   * @param {Object} observer
+   */
   removeObserver(observer) {
-    const index = this.observers.indexOf(observer);
-    if (index !== -1) {
-      this.observers.splice(index, 1);
-    }
+    this.observers.delete(observer);
   }
 
+  /**
+   * Notifies all observers with the message.
+   * @param {string} message
+   */
   notifyObservers(message) {
-    for (const observer of this.observers) {
-      observer.update(message);
-    }
+    this.observers.forEach(observer => {
+      if (typeof observer.update === 'function') {
+        observer.update(message);
+      }
+    });
   }
 
+  /**
+   * Log a message and notify observers.
+   * @param {string} message
+   */
   log(message) {
     this.notifyObservers(message);
   }
 }
 
-// Concrete observers
 class ConsoleLogger {
   update(message) {
     console.log(`[CONSOLE] ${new Date().toISOString()}: ${message}`);
   }
 }
 
-// TODO: remove in case of no use
-// class FileLogger {
-//   update(message) {
-//     // In a real implementation, write to a file
-//     console.log(`[FILE] ${new Date().toISOString()}: ${message}`);
-//   }
-// }
 
-// Create logger instance and add observers
 const logger = new Logger();
-logger.addObserver(new ConsoleLogger());
-// logger.addObserver(new FileLogger());
+const consoleLogger = new ConsoleLogger();
 
-module.exports = logger;
+logger.addObserver(consoleLogger);
+logger.log('This is a test message'); 

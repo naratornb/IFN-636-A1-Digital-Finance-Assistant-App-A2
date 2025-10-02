@@ -1,12 +1,17 @@
+
 import ExpenseRepository from '../repositories/expenseRepository.js';
+import ExpenseFactory from './expenseFactory.js';
 
 class ExpenseService {
   constructor() {
-    this.expenseRepository = new ExpenseRepository();
+    if (ExpenseService.instance) return ExpenseService.instance;
+    this.expenseRepository = ExpenseRepository;
+    ExpenseService.instance = this;
   }
 
-  async createExpense(expenseData) {
-    return this.expenseRepository.create(expenseData);
+  async createExpense(expenseData, type = 'one-time') {
+    const expenseObj = ExpenseFactory.createExpense(expenseData, type);
+    return this.expenseRepository.create(expenseObj);
   }
 
   async getExpensesByUser(userId) {
@@ -30,4 +35,4 @@ class ExpenseService {
   }
 }
 
-export default ExpenseService;
+export default new ExpenseService(); 

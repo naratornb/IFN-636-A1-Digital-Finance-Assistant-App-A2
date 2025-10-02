@@ -1,22 +1,18 @@
+
 import BaseController from './baseController.js';
 import ExpenseService from '../services/expenseService.js';
 
 class ExpenseController extends BaseController {
   constructor() {
-    super(null); // We don't pass a repository because we use service
-    this.expenseService = new ExpenseService();
+    super();
+    this.expenseService = ExpenseService;
   }
 
   async validateRequest(req) {
-    // For POST and PUT, validate required fields
-    if (req.method === 'POST' || req.method === 'PUT') {
+    if (['POST', 'PUT'].includes(req.method)) {
       const { category, amount, date } = req.body;
-      if (!category || !amount || !date) {
-        throw new Error('Category, amount, and date are required');
-      }
-      if (amount <= 0) {
-        throw new Error('Amount must be greater than 0');
-      }
+      if (!category || !amount || !date) throw new Error('Category, amount, and date are required');
+      if (amount <= 0) throw new Error('Amount must be greater than 0');
     }
   }
 
@@ -28,35 +24,22 @@ class ExpenseController extends BaseController {
       case 'POST':
         return this.expenseService.createExpense({ ...req.body, userId });
       case 'GET':
-        if (id) {
-          return this.expenseService.getExpenseById(id);
-        } else {
-          // Check for date range query parameters
-          const { startDate, endDate } = req.query;
-          if (startDate && endDate) {
-            return this.expenseService.getExpensesByUserAndDateRange(
-              userId,
-              new Date(startDate),
-              new Date(endDate)
-            );
-          } else {
-            return this.expenseService.getExpensesByUser(userId);
-          }
-        }
-      case 'PUT':
-        return this.expenseService.updateExpense(id, req.body);
-      case 'DELETE':
-        return this.expenseService.deleteExpense(id);
-      default:
-        throw new Error('Method not supported');
+        if (id) return this.expenseService.getExpenseById(id);
+        const { startDate, endDate } = req.query;
+        return startDate && endDate
+          ? this.expenseService.getExpensesByUserAndDateRange(userId, new Date(startDate), new Date(endDate))
+          : this.expenseService.getExpensesByUser(userId);
+      case 'PUT': return this.expenseService.updateExpense(id, req.body);
+      case 'DELETE': return this.expenseService.deleteExpense(id);
+      default: throw new Error('Method not supported');
     }
   }
 }
 
 const expenseController = new ExpenseController();
 
-// Export decorated handlers
-export const createExpense =expenseController.handleRequest;
+
+export const createExpense = expenseController.handleRequest;
 export const getExpenses = expenseController.handleRequest;
 export const getExpenseById = expenseController.handleRequest;
 export const updateExpense = expenseController.handleRequest;
