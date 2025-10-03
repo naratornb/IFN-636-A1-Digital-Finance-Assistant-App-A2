@@ -45,7 +45,7 @@ const GoalList = ({ goals, setGoals, setEditingGoal }) => {
         </div>
       ) : (
         <div className="w-full overflow-x-auto">
-          {/* Header row - hidden on mobile, visible on medium screens and above */}
+          {/* Header row */}
           <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_160px_120px_80px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
             <span className="text-left">Name</span>
             <span className="text-left">Current / Goal</span>
