@@ -1,70 +1,143 @@
 # Digital Finance Assistant
 
 ## Overview
-The Digital Finance Assistant application helps users efficiently manage their personal finances through a user-friendly interface for tracking expenses, managing budgets, monitoring financial goals, and generating reports. It includes secure user authentication, allowing users to sign up, log in, log out, and manage their profiles. Built-in validations ensure data integrity and a seamless user experience, empowering users to make informed financial decisions.
+The **Digital Finance Assistant** is a web application that helps users efficiently manage personal finances. Users can track expenses, manage budgets, monitor financial goals, and generate reports. The application ensures secure authentication and data integrity with validations, enabling informed financial decisions.
 
 ## Features
+- **Authentication & Profile Management**: Sign up, log in, log out, and update profile.
+- **Manage Expenses**: Add, update and delete expenses with fields such as category, amount, date, and description.
+- **Manage Budgets**: Create, update and delete budgets with fields for period, start date, total budget, status, and notes.
+- **Manage Goals**: Create, update and delete saving goals with fields such as name, description, deadline, target, and current amount.
+- **Display Reports**: Display summary reports of expenses and budgets and allow users to download the report in PDF format.
 
-### Authentication & Profile Management
-- **Signup**: Create a new account
-- **Login**: Access the account
-- **Logout**: Sign out securely
-- **Update profile**: Edit personal information
+## Sample Users for Testing
+- Username: test@mail.com | Password: password123
 
-### Expenses (CRUD)
-- **Create**: Add new expense records
-- **Read**: View expense history
-- **Update**: Edit existing expenses
-- **Delete**: Remove expenses
+## Project Setup Instructions [EC2]
+- Start EC2 instance
+    - instance id: i-0c7a7d30cde1805af
+    - instance ip: 16.176.67.173
+- Rerun build pipline
+- Access with given public ip address (using qut local network)
 
-### Budget (CRUD)
-- **Create**: Set a new budget
-- **Read**: View current budgets
-- **Update**: Adjust budgets
-- **Delete**: Remove budgets
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or cloud instance)
+- npm or yarn
 
-### Goals (CRUD)
-- **Create**: Define new financial goals
-- **Read**: Track progress on goals
-- **Update**: Edit goal details
-- **Delete**: Remove goals
+## Environment Configuration (`.env`)
+Create a `.env` file in the `backend/` root directory:
 
-### Reports (CRUD)
-- **Create**: Generate new reports
-- **Read**: View financial summaries
-- **Update**: Refresh or adjust report parameters
-- **Delete**: Remove saved reports
-
-## Development Notes
-This application is mostly precompiled. However, students will actively develop CRUD functionality for expenses, budgets, goals, and reports, while also interacting with GitHub during development.
-
-## Prerequisites
-Please install the following software and create accounts in these web tools:
-
-- **Node.js**: [https://nodejs.org/en](https://nodejs.org/en)
-- **Git**: [https://git-scm.com/](https://git-scm.com/)
-- **VS Code**: [https://code.visualstudio.com/](https://code.visualstudio.com/)
-- **MongoDB Account**: [https://account.mongodb.com/account/login](https://account.mongodb.com/account/login)  
-  *Note: In the tutorial, we show how to create an account and database (follow step number 2).*
-- **GitHub Account**: [https://github.com/signup](https://github.com/signup)
-
-## Getting Started
-1. Clone the repository
-2. Install dependencies:
-   ```
-   npm install
-   cd frontend && npm install
-   cd ../backend && npm install
-   ```
-3. Set up your environment variables
-4. Start the development server:
-   ```
-   npm run dev
-   ```
+Please see the details in the report.
 
 ## Project Structure
-- `frontend/`: React-based user interface
-- `backend/`: Express.js API server
-- `backend/models/`: MongoDB data models
-- `backend/controllers/`: Request handlers
-- `backend/routes/`: API endpoint definitions
+```
+IFN-636-A1-Digital-Finance-Assistant-App-A2/
+│
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── repositories/
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── services/
+│
+├── README.md
+└── package.json
+```
+    ├─ middleware/ # Authentication & validation  
+    ├─ test/ # Unit tests for services  
+    ├─ .env # Environment variables  
+
+# Setup & Installation
+
+## Clone the repository
+```
+git clone https://github.com/naratornb/IFN-636-A1-Digital-Finance-Assistant-App-A2.git
+cd IFN-636-A1-Digital-Finance-Assistant-App-A2
+```
+## Install dependencies
+```
+npm install
+cd frontend && npm install
+cd ../backend && npm install
+```
+## Configure environment variables (.env)
+## Start development server
+```
+npm start
+```
+## Public URL
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5002
+
+# Testing
+
+## Unit Testing:
+- Tools: Mocha + Chai  
+- Focus: Service layer (Expenses, Budgets, Goals, Reports)  
+- Unit test files:
+    - `backend/test/budgetService.test.js`
+    - `backend/test/expenseService.test.js`
+    - `backend/test/goalService.test.js`
+    - `backend/test/reportService.test.js`
+
+## API Testing:
+
+Tool: Postman  
+Endpoints tested:
+
+**Auth/User**
+- `POST /api/auth/register` (Register)
+- `POST /api/auth/login` (Login)
+- `GET /api/auth/profile` (Get profile)
+
+**Budget**
+- `POST /api/budgets` (Create budget)
+- `GET /api/budgets` (Get all budgets)
+- `GET /api/budgets/:id` (Get budget by ID)
+- `PUT /api/budgets/:id` (Update budget)
+- `DELETE /api/budgets/:id` (Delete budget)
+
+**Expense**
+- `POST /api/expenses` (Create expense)
+- `GET /api/expenses` (Get all expenses)
+- `GET /api/expenses/:id` (Get expense by ID)
+- `PUT /api/expenses/:id` (Update expense)
+- `DELETE /api/expenses/:id` (Delete expense)
+
+**Goal**
+- `POST /api/goals` (Create goal)
+- `GET /api/goals` (Get all goals)
+- `GET /api/goals/:id` (Get goal by ID)
+- `PUT /api/goals/:id` (Update goal)
+- `DELETE /api/goals/:id` (Delete goal)
+
+**Report**
+- `GET /api/reports` (Get dashboard report)
+- `GET /api/reports/pdf` (Download report PDF)
+- `GET /api/reports/download-logs` (Get report download logs)
+- `DELETE /api/reports/download-logs` (Clear report download logs)
+
+Postman collection: <https://github.com/naratornb/IFN-636-A1-Digital-Finance-Assistant-App-A2/blob/main/backend/postman/postman_collection.json>
+
+## UI/UX Prototyping
+- Figma link: <https://www.figma.com/design/FBqsTmSuUTT0cE0ZXVVHC4/UI-Design?node-id=0-1&p=f&t=QyIhFdwOQAC1VT9h-0>  
+
+## CI/CD & Deployment
+- GitHub Actions: Automated builds & tests  
+- Deployment: AWS EC2 / Elastic Beanstalk  
+- Auto-deployment triggered on main branch  
+
+## Notes
+- Only service layer is unit tested; models and controllers are used as-is.  
+- Swagger annotations are optional for API documentation.
+
+
