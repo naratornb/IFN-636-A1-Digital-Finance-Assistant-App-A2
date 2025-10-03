@@ -3,7 +3,6 @@ const router = express.Router();
 const reportController = require('../controllers/reportController');
 const { protect } = require('../middleware/authMiddleware');
 
-// All routes require authentication
 router.use(protect);
 /**
  * @swagger
@@ -390,7 +389,6 @@ router.get('/pdf', reportController.generatePdf.bind(reportController));
  */
 router.get('/download-logs', reportController.getDownloadLogs.bind(reportController));
 
-// Clear all report download logs for the current user
 router.delete('/download-logs', reportController.clearDownloadLogs.bind(reportController));
 
 module.exports = router;

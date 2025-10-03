@@ -24,12 +24,10 @@ const Dashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch dashboard data from backend API
         const response = await axiosInstance.get('/api/reports', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         
-        // Set the dashboard data from the response
         setDashboardData(response.data.data || response.data);
       } catch (err) {
         setError('Failed to fetch dashboard data');
@@ -47,7 +45,6 @@ const Dashboard = () => {
     }
   }, [user?.token]);
 
-  // Get the values from dashboardData
   const {
     totalExpenses,
     totalBudget,

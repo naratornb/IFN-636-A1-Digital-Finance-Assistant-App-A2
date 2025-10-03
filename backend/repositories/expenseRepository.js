@@ -6,7 +6,6 @@ class ExpenseRepository extends BaseRepository {
     super(Expense);
   }
 
-  // Additional methods specific to Expense
   async findByUser(userId) {
     return this.model.find({ userId }).sort({ date: -1 });
   }

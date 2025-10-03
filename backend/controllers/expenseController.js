@@ -3,12 +3,11 @@ import ExpenseService from '../services/expenseService.js';
 
 class ExpenseController extends BaseController {
   constructor() {
-    super(null); // We don't pass a repository because we use service
+    super(null); 
     this.expenseService = new ExpenseService();
   }
 
   async validateRequest(req) {
-    // For POST and PUT, validate required fields
     if (req.method === 'POST' || req.method === 'PUT') {
       const { category, amount, date } = req.body;
       if (!category || !amount || !date) {
@@ -31,7 +30,6 @@ class ExpenseController extends BaseController {
         if (id) {
           return this.expenseService.getExpenseById(id);
         } else {
-          // Check for date range query parameters
           const { startDate, endDate } = req.query;
           if (startDate && endDate) {
             return this.expenseService.getExpensesByUserAndDateRange(
@@ -55,7 +53,6 @@ class ExpenseController extends BaseController {
 
 const expenseController = new ExpenseController();
 
-// Export decorated handlers
 export const createExpense =expenseController.handleRequest;
 export const getExpenses = expenseController.handleRequest;
 export const getExpenseById = expenseController.handleRequest;

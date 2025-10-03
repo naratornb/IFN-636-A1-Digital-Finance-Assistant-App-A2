@@ -9,7 +9,6 @@ class BaseRepository {
   }
 
   async findById(id, userId) {
-    // If userId is provided, ensure the entity belongs to the user
     if (userId) {
       return this.model.findOne({ _id: id, userId });
     }

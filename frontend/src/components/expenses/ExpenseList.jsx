@@ -7,7 +7,6 @@ const ExpenseList = ({ setEditingExpense }) => {
   const { user } = useAuth();
   const { expenses, deleteExpense, getExpenses } = useExpenseContext();
 
-  // Fetch expenses when component mounts
   useEffect(() => {
     if (user?.token) {
       getExpenses();
@@ -20,23 +19,18 @@ const ExpenseList = ({ setEditingExpense }) => {
 
     try {
       await deleteExpense(expenseId);
-      // No need to manually update state - the context handles it
     } catch (error) {
       alert('Failed to delete expense.');
     }
   };
 
-  // Helper function to safely format currency
   const formatCurrency = (amount) => {
-    // Check if amount exists and is a number
     if (amount === undefined || amount === null) {
       return '$0.00';
     }
 
-    // Convert to number if it's a string
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 
-    // Check if it's a valid number
     if (isNaN(numAmount)) {
       return '$0.00';
     }

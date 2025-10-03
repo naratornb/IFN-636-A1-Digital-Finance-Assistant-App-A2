@@ -1,9 +1,7 @@
-// src/context/ExpenseContext.js
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import expenseService from '../services/ExpenseService';
 import { useAuth } from './AuthContext';
 
-// Initial state
 const initialState = {
   expenses: [],
   expense: null,
@@ -12,10 +10,8 @@ const initialState = {
   success: false
 };
 
-// Create context
 export const ExpenseContext = createContext(initialState);
 
-// Reducer
 const expenseReducer = (state, action) => {
   switch (action.type) {
     case 'EXPENSE_REQUEST':
@@ -80,12 +76,10 @@ const expenseReducer = (state, action) => {
   }
 };
 
-// Provider component
 export const ExpenseProvider = ({ children }) => {
   const [state, dispatch] = useReducer(expenseReducer, initialState);
   const { user } = useAuth();
 
-  // Get all expenses - memoized with useCallback
   const getExpenses = useCallback(async (params = {}) => {
     try {
       dispatch({ type: 'EXPENSE_REQUEST' });
@@ -94,20 +88,16 @@ export const ExpenseProvider = ({ children }) => {
       }
       const response = await expenseService.getExpenses(user.token, params);
 
-      // Handle different response formats
       let expensesArray;
       if (Array.isArray(response)) {
-        // If response is already an array
         expensesArray = response;
       } else if (response && typeof response === 'object') {
-        // If response is an object that might contain expenses array
         expensesArray = response.expenses || response.data || [];
         if (!Array.isArray(expensesArray)) {
           console.warn('Unexpected expense data format:', response);
           expensesArray = [];
         }
       } else {
-        // Fallback to empty array
         console.warn('Unexpected expense response:', response);
         expensesArray = [];
       }
@@ -122,9 +112,8 @@ export const ExpenseProvider = ({ children }) => {
       });
       return [];
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Get single expense - memoized with useCallback
   const getExpense = useCallback(async (id) => {
     try {
       dispatch({ type: 'EXPENSE_REQUEST' });
@@ -141,9 +130,8 @@ export const ExpenseProvider = ({ children }) => {
       });
       return null;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Create an expense - memoized with useCallback
   const createExpense = useCallback(async (expenseData) => {
     try {
       dispatch({ type: 'EXPENSE_REQUEST' });
@@ -160,9 +148,8 @@ export const ExpenseProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Update an expense - memoized with useCallback
   const updateExpense = useCallback(async (id, expenseData) => {
     try {
       dispatch({ type: 'EXPENSE_REQUEST' });
@@ -179,9 +166,8 @@ export const ExpenseProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]);
 
-  // Delete an expense - memoized with useCallback
   const deleteExpense = useCallback(async (id) => {
     try {
       dispatch({ type: 'EXPENSE_REQUEST' });
@@ -198,17 +184,15 @@ export const ExpenseProvider = ({ children }) => {
       });
       return false;
     }
-  }, [user?.token]); // Only recreate when token changes
+  }, [user?.token]); 
 
-  // Reset success state - memoized with useCallback
   const resetSuccess = useCallback(() => {
     dispatch({ type: 'RESET_SUCCESS' });
-  }, []); // No dependencies
+  }, []); 
 
-  // Clear current expense - memoized with useCallback
   const clearExpense = useCallback(() => {
     dispatch({ type: 'CLEAR_EXPENSE' });
-  }, []); // No dependencies
+  }, []); 
 
   return (
     <ExpenseContext.Provider
@@ -228,7 +212,6 @@ export const ExpenseProvider = ({ children }) => {
   );
 };
 
-// Hook to use the expense context
 export const useExpenseContext = () => {
   return useContext(ExpenseContext);
 };

@@ -35,7 +35,6 @@ const Goals = () => {
 
   const handleSave = () => {
     setEditingGoal(null);
-    // Re-fetch goals after save
     if (user?.token) {
       setLoading(true);
       axiosInstance.get('/api/goals', {

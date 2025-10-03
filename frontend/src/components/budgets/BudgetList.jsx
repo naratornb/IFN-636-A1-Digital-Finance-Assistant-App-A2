@@ -8,7 +8,6 @@ const BudgetList = ({
   handleDelete
 }) => {
 
-  // Helper function to format date for display
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return '';
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -43,7 +42,7 @@ const BudgetList = ({
         </div>
       ) : (
   <div className="w-full overflow-x-auto">
-          {/* Header row - hidden on mobile, visible on medium screens and above */}
+          {/* Header row */}
           <div className="hidden text-xs uppercase tracking-[0.25em] text-[#cfcfcf] md:grid md:grid-cols-[180px_90px_160px_120px_50px] md:gap-3 md:border-b md:border-[#5c5c5c] md:pb-4 w-full">
             <span className="text-left">Period</span>
             <span className="text-left">Budget</span>
@@ -59,7 +58,7 @@ const BudgetList = ({
                 key={budget._id}
                 className="grid items-center gap-3 text-xs text-[#f5f5f5] md:grid-cols-[180px_90px_160px_120px_50px] w-full"
               >
-                {/* Period column with status badge */}
+                {/* Period column */}
                 <div className="text-left font-medium uppercase tracking-[0.2em] break-words whitespace-normal">
                   <span>{budget.period.charAt(0).toUpperCase() + budget.period.slice(1)}</span>
                   <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${

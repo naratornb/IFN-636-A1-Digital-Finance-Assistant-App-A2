@@ -35,10 +35,8 @@ const budgetSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Index for efficient querying by user and period
 budgetSchema.index({ userId: 1, period: 1 });
 
-// Virtual for budget status (active/expired)
 budgetSchema.virtual('status').get(function() {
   const now = new Date();
   return now > this.endDate ? 'expired' : 'active';

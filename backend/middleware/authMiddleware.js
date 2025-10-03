@@ -1,7 +1,3 @@
-// Middleware Pattern: implementation middlware for authentication
-// This middleware checks for a valid JWT token in the Authorization header
-// If valid, it attaches the user object to the request and calls next()
-// If not valid, it responds with a 401 Unauthorized status
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');

@@ -12,7 +12,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-[#464646] h-24 flex items-center justify-between px-12 shadow-[0_6px_18px_rgba(0,0,0,0.4)]">
-      {/* Logo and Brand */}
+      {/* Brand */}
       <div className="flex items-center space-x-4">
         <div className="text-white">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

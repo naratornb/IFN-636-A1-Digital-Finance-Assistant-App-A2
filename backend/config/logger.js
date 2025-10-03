@@ -1,5 +1,3 @@
-// Observer Pattern: Allows multiple objects to observe state changes
-
 class Logger {
   constructor() {
     this.observers = [];
@@ -27,24 +25,13 @@ class Logger {
   }
 }
 
-// Concrete observers
 class ConsoleLogger {
   update(message) {
     console.log(`[CONSOLE] ${new Date().toISOString()}: ${message}`);
   }
 }
 
-// TODO: remove in case of no use
-// class FileLogger {
-//   update(message) {
-//     // In a real implementation, write to a file
-//     console.log(`[FILE] ${new Date().toISOString()}: ${message}`);
-//   }
-// }
-
-// Create logger instance and add observers
 const logger = new Logger();
 logger.addObserver(new ConsoleLogger());
-// logger.addObserver(new FileLogger());
 
 module.exports = logger;

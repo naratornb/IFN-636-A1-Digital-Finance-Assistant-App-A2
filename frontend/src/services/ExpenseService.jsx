@@ -1,4 +1,3 @@
-// src/services/ExpenseService.js
 import axiosInstance from "../axiosConfig";
 
 const API_URL = '/api/expenses/';
@@ -8,7 +7,6 @@ class ExpenseService {
     this.api = axiosInstance;
   }
 
-  // Factory Method Pattern: This method creates a new expense resource via API
   async createExpense(token, expenseData) {
     const config = {
       headers: {
@@ -19,8 +17,6 @@ class ExpenseService {
     return response.data;
   }
 
-  // Retrieves all expenses using the same authorization pattern
-  // Optional params for filtering expenses
   async getExpenses(token, params = {}) {
     const config = {
       headers: {
@@ -32,7 +28,6 @@ class ExpenseService {
     return response.data;
   }
 
-  // Retrieves an expense by ID using the same authorization pattern
   async getExpenseById(token, id) {
     const config = {
       headers: {
@@ -43,7 +38,6 @@ class ExpenseService {
     return response.data;
   }
 
-  // Updates an expense by ID using the same authorization pattern
   async updateExpense(token, id, expenseData) {
     const config = {
       headers: {
@@ -54,7 +48,6 @@ class ExpenseService {
     return response.data;
   }
 
-  // Deletes an expense by ID using the same authorization pattern
   async deleteExpense(token, id) {
     const config = {
       headers: {

@@ -26,7 +26,6 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
     } else {
       setFormData({ name: '', deadline: '', target: '', current: '', description: '' });
     }
-    // Clear errors when form changes
     setErrors({});
     setGeneralError('');
   }, [editingGoal]);
@@ -34,7 +33,6 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
   const handleChange = (field) => (event) => {
     const { value } = event.target;
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error for this field when user makes changes
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -64,12 +62,10 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
       if (error.response && error.response.data) {
         const responseData = error.response.data;
 
-        // Handle validation errors
         if (responseData.errors) {
           setErrors(responseData.errors);
         }
 
-        // Handle general error message
         if (responseData.message) {
           setGeneralError(responseData.message);
         } else {
@@ -81,7 +77,6 @@ const GoalForm = ({ goals, setGoals, editingGoal, setEditingGoal }) => {
     }
   };
 
-  // Helper function to render error message
   const renderError = (field) => {
     return errors[field] ? (
       <p className="text-red-500 text-sm mt-1">{errors[field]}</p>

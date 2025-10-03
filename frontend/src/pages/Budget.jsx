@@ -16,10 +16,8 @@ const Budgets = () => {
       setLoading(true);
       const response = await BudgetService.getBudgets(user.token);
 
-      // Check if response has the expected structure (could be nested in .data property)
       const budgetData = response.data || response;
 
-      // Log the response to debug
       console.log("Budget API response:", response);
       console.log("Budget data to display:", budgetData);
 

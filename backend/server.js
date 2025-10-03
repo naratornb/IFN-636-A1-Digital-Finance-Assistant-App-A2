@@ -10,27 +10,21 @@ const swaggerDocs = require("./config/swagger");
 
 const startServer = async () => {
   try {
-    // Using Singleton Pattern for database connection
     await connectDB(MONGODB_URI);
 
-    // swagger
     swaggerDocs(app, PORT);
 
-    // Start the server
     app.listen(PORT, () => {
       logger.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
     logger.log(`Failed to start server: ${error}`);
-    // Ensure the process exits with a non-zero code to indicate failure
     process.exit(1);
   }
 };
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   logger.log(`Unhandled Rejection: ${err}`);
-  // Close server & exit process
   process.exit(1);
 });
 
