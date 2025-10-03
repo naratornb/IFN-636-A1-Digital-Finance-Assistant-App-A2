@@ -79,19 +79,7 @@ class ReportController extends BaseController {
       if (budgets.length > 0) {
         for (const budget of budgets) {
           const budgetAmount = parseFloat(budget.totalBudget) || 0;
-
-          const budgetStart = budget.startDate ? new Date(Math.max(budget.startDate, startDate)) : new Date(startDate);
-          const budgetEnd = budget.endDate ? new Date(Math.min(budget.endDate, endDate)) : new Date(endDate);
-
-          const daysInPeriod = Math.ceil((budgetEnd - budgetStart) / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
-
-          const budgetStartDate = budget.startDate ? new Date(budget.startDate) : new Date(startDate);
-          const budgetEndDate = budget.endDate ? new Date(budget.endDate) : new Date(endDate);
-          const totalBudgetDays = Math.ceil((budgetEndDate - budgetStartDate) / (1000 * 60 * 60 * 24)) + 1;
-
-          const proratedBudget = totalBudgetDays > 0 ? (budgetAmount / totalBudgetDays) * daysInPeriod : 0;
-
-          totalBudget += proratedBudget;
+          totalBudget += budgetAmount;
         }
       }
 
@@ -321,19 +309,7 @@ class ReportController extends BaseController {
       if (budgets.length > 0) {
         for (const budget of budgets) {
           const budgetAmount = parseFloat(budget.totalBudget) || 0;
-
-          const budgetStart = budget.startDate ? new Date(Math.max(budget.startDate, startDateObj)) : new Date(startDateObj);
-          const budgetEnd = budget.endDate ? new Date(Math.min(budget.endDate, endDateObj)) : new Date(endDateObj);
-
-          const daysInPeriod = Math.ceil((budgetEnd - budgetStart) / (1000 * 60 * 60 * 24)) + 1;
-
-          const budgetStartDate = budget.startDate ? new Date(budget.startDate) : new Date(startDateObj);
-          const budgetEndDate = budget.endDate ? new Date(budget.endDate) : new Date(endDateObj);
-          const totalBudgetDays = Math.ceil((budgetEndDate - budgetStartDate) / (1000 * 60 * 60 * 24)) + 1;
-
-          const proratedBudget = totalBudgetDays > 0 ? (budgetAmount / totalBudgetDays) * daysInPeriod : 0;
-
-          totalBudget += proratedBudget;
+          totalBudget += budgetAmount;
         }
       }
 
