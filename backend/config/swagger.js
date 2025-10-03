@@ -11,7 +11,7 @@ const options = {
     },
     servers: [{ url: "http://localhost:5001/api" }],
   },
-  apis: ["./routes/*.js"], // point to your route files with JSDoc comments
+  apis: ["./routes/*.js"], 
 };
 
 const swaggerSpec = swaggerJsdoc(options);

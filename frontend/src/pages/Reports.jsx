@@ -28,7 +28,6 @@ const Reports = () => {
   });
 
   useEffect(() => {
-    // Set default dates if not set (last 30 days)
     if (!startDate || !endDate) {
       const end = new Date();
       const start = new Date();
@@ -46,12 +45,10 @@ const Reports = () => {
       try {
         setLoading(true);
 
-        // Fetch dashboard data from backend API with date range
         const response = await axiosInstance.get(`/api/reports?startDate=${startDate}&endDate=${endDate}`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
 
-        // Set the dashboard data from the response
         setDashboardData(response.data.data || response.data);
         setError('');
       } catch (err) {
@@ -70,7 +67,6 @@ const Reports = () => {
     }
     }, [user?.token, startDate, endDate]);
 
-  // Get the values from dashboardData
   const {
     totalExpenses,
     totalBudget,
@@ -81,39 +77,32 @@ const Reports = () => {
 
   const handleDateRangeSubmit = (e) => {
     e.preventDefault();
-    // Data will be fetched automatically via the useEffect that depends on startDate and endDate
   };
 
   const handleDownloadReport = async () => {
     try {
       setDownloadLoading(true);
 
-      // Request the PDF from the backend
       const response = await axiosInstance.get(`/api/reports/pdf?startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           Authorization: `Bearer ${user.token}`
         },
-        responseType: 'blob' // Important for handling binary data
+        responseType: 'blob' 
       });
 
-      // Create a blob URL for the PDF
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
 
-      // Create a temporary link element to trigger the download
       const link = document.createElement('a');
       link.href = url;
 
-      // Generate a filename with the date range
       const formattedStartDate = new Date(startDate).toLocaleDateString().replace(/\//g, '-');
       const formattedEndDate = new Date(endDate).toLocaleDateString().replace(/\//g, '-');
       link.download = `financial_report_${formattedStartDate}_to_${formattedEndDate}.pdf`;
 
-      // Trigger the download
       document.body.appendChild(link);
       link.click();
 
-      // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
     } catch (err) {
@@ -156,7 +145,6 @@ const Reports = () => {
         headers: { Authorization: `Bearer ${user.token}` }
       });
 
-      // Clear logs in state
       setDownloadLogs([]);
     } catch (err) {
       console.error('Error clearing download logs:', err);

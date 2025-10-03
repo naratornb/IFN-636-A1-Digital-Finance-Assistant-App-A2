@@ -1,4 +1,3 @@
-// src/pages/Expenses.js
 import React, { useState } from 'react';
 import ExpenseList from '../components/expenses/ExpenseList.jsx';
 import ExpenseForm from '../components/expenses/ExpenseForm.jsx';

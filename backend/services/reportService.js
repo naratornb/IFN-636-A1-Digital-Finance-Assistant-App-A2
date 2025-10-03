@@ -5,11 +5,10 @@ const { ReportDownload } = require('../models/Report');
 
 class ReportService {
   /**
-   * Logs a report download
-   * @param {string} userId - ID of the user downloading the report
-   * @param {Object} dateRange - Date range of the report
-   * @param {string} fileName - Name of the downloaded file
-   * @returns {Promise<Object>} - The created log entry
+   * @param {string} userId 
+   * @param {Object} dateRange 
+   * @param {string} fileName 
+   * @returns {Promise<Object>} 
    */
   async addReportDownloadLog(userId, dateRange, fileName) {
     try {
@@ -29,10 +28,9 @@ class ReportService {
   }
 
   /**
-   * Get all report download logs for a user
-   * @param {string} userId - ID of the user
-   * @param {Object} options - Pagination options
-   * @returns {Promise<Array>} - Array of download logs
+   * @param {string} userId 
+   * @param {Object} options 
+   * @returns {Promise<Array>} 
    */
   async getReportDownloadLogs(userId, options = {}) {
     try {
@@ -54,9 +52,8 @@ class ReportService {
   }
 
   /**
-   * Clear all report download logs for a user
-   * @param {string} userId - ID of the user
-   * @returns {Promise<Object>} - Result of deletion
+   * @param {string} userId 
+   * @returns {Promise<Object>} 
    */
   async clearReportDownloadLogs(userId) {
     try {
@@ -69,29 +66,24 @@ class ReportService {
   }
 
   /**
-   * Generates a PDF report based on provided data
-   * @param {Object} reportData - Data to be included in the report
-   * @param {string} startDate - Start date of the report period
-   * @param {string} endDate - End date of the report period
-   * @param {string} userId - User ID for identifying the report
-   * @returns {Promise<string>} - Path to the generated PDF file
+   * @param {Object} reportData
+   * @param {string} startDate 
+   * @param {string} endDate 
+   * @param {string} userId 
+   * @returns {Promise<string>} 
    */
   async generatePdfReport(reportData, startDate, endDate, userId) {
     try {
-      // Create directory for reports if it doesn't exist
       const reportDir = path.join(__dirname, '../reports');
       await fs.ensureDir(reportDir);
 
-      // Create a unique filename for the report
       const timestamp = new Date().getTime();
       const filename = `financial_report_${userId}_${timestamp}.pdf`;
       const filePath = path.join(reportDir, filename);
 
-      // Format dates for display
       const formattedStartDate = new Date(startDate).toLocaleDateString();
       const formattedEndDate = new Date(endDate).toLocaleDateString();
 
-      // Launch a headless browser
       const browser = await puppeteer.launch({
         headless: 'new',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -99,15 +91,12 @@ class ReportService {
 
       const page = await browser.newPage();
 
-      // Generate HTML content for the report
       const htmlContent = this.generateReportHtml(reportData, formattedStartDate, formattedEndDate);
 
-      // Set the HTML content
       await page.setContent(htmlContent, {
         waitUntil: 'networkidle0'
       });
 
-      // Generate PDF
       await page.pdf({
         path: filePath,
         format: 'A4',
@@ -134,11 +123,10 @@ class ReportService {
   }
 
   /**
-   * Generates HTML content for the report
-   * @param {Object} data - Report data
-   * @param {string} startDate - Formatted start date
-   * @param {string} endDate - Formatted end date
-   * @returns {string} - HTML content
+   * @param {Object} data 
+   * @param {string} startDate 
+   * @param {string} endDate 
+   * @returns {string} 
    */
   generateReportHtml(data, startDate, endDate) {
     const {
@@ -151,7 +139,6 @@ class ReportService {
       recentTransactions = []
     } = data;
 
-    // Generate HTML for top categories
     let categoriesHtml = '';
     if (topCategories.length > 0) {
       topCategories.forEach(category => {
@@ -173,7 +160,6 @@ class ReportService {
       categoriesHtml = '<p class="no-data">No category data available</p>';
     }
 
-    // Generate HTML for transactions
     let transactionsHtml = '';
     if (recentTransactions.length > 0) {
       recentTransactions.forEach(transaction => {
@@ -192,7 +178,6 @@ class ReportService {
       transactionsHtml = '<p class="no-data">No transactions in this period</p>';
     }
 
-    // Return the complete HTML content
     return `
       <!DOCTYPE html>
       <html>
@@ -606,8 +591,7 @@ class ReportService {
   }
 
   /**
-   * Deletes a report file after it's been downloaded
-   * @param {string} filePath - Path to the file to delete
+   * @param {string} filePath 
    * @returns {Promise<void>}
    */
   async cleanupReport(filePath) {

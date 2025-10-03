@@ -16,7 +16,6 @@ const ExpenseForm = ({ editingExpense, setEditingExpense }) => {
     budgetId: ''
   });
 
-  // Categories from the backend model
   const categories = [
     'Housing', 'Transportation', 'Food', 'Utilities',
     'Healthcare', 'Insurance', 'Debt', 'Entertainment',

@@ -10,7 +10,6 @@ describe('BudgetService', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox();
 
-    // Create stubs for repository methods
     budgetRepositoryStub = {
       create: sandbox.stub(),
       findByUser: sandbox.stub(),

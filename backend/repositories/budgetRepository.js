@@ -6,7 +6,6 @@ class BudgetRepository extends BaseRepository {
     super(Budget);
   }
 
-  // Additional methods specific to Budget
   async findByUserAndPeriod(userId, period) {
     return this.model.findOne({ userId, period });
   }
