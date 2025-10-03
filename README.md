@@ -1,4 +1,4 @@
-# Digital Finance Assistant
+# MAXWORTH Digital Finance Assistant
 
 ## Overview
 The **Digital Finance Assistant** is a web application that helps users efficiently manage personal finances. Users can track expenses, manage budgets, monitor financial goals, and generate reports. The application ensures secure authentication and data integrity with validations, enabling informed financial decisions.
